@@ -754,25 +754,34 @@ function positionCsel(s){
   s.panel.style.top = Math.max(4, top) + 'px';
   s.panel.style.maxHeight = maxH + 'px';
 }
+// Türkçe harf farklarını yok sayan arama anahtarı: "istanbul", "İSTANBUL", "ıstanbul" hepsi eşleşir.
+function foldTr(s){
+  return String(s||'').toLocaleLowerCase('tr-TR')
+    .replace(/ı/g,'i').replace(/ş/g,'s').replace(/ğ/g,'g')
+    .replace(/ü/g,'u').replace(/ö/g,'o').replace(/ç/g,'c');
+}
+// Arama kutusu panel açılırken bir kez kurulur; yazarken yalnızca liste yenilenir,
+// böylece kutu odağını ve yazılan metni kaybetmez.
 function renderCselList(s, filterText){
-  const q = (filterText||'').toLocaleLowerCase('tr-TR');
-  const opts = s.options.filter(o => !q || o.toLocaleLowerCase('tr-TR').indexOf(q)!==-1);
-  let html = '';
   const needsSearch = s.options.length > 10;
-  if (needsSearch){
-    html += `<div class="csel-search"><input type="text" placeholder="Ara..."></div>`;
-  }
-  html += `<div class="csel-item${!state[s.key]?' sel':''}" data-val="">Tümü</div>`;
-  html += opts.length===0
-    ? `<div class="csel-empty">Sonuç yok</div>`
-    : opts.map(o=>`<div class="csel-item${state[s.key]===o?' sel':''}" data-val="${escapeAttr(o)}">${escapeHtml(o)}</div>`).join('');
-  s.panel.innerHTML = html;
+  s.panel.innerHTML = (needsSearch ? `<div class="csel-search"><input type="text" placeholder="Ara..."></div>` : '') +
+    `<div class="csel-list"></div>`;
   if (needsSearch){
     const inp = s.panel.querySelector('.csel-search input');
     inp.addEventListener('click', e=>e.stopPropagation());
-    inp.addEventListener('input', ()=>{ renderCselList(s, inp.value); positionCsel(s); });
+    inp.addEventListener('input', ()=>{ renderCselItems(s, inp.value); positionCsel(s); });
   }
-  s.panel.querySelectorAll('.csel-item[data-val]').forEach(item=>{
+  renderCselItems(s, filterText);
+}
+function renderCselItems(s, filterText){
+  const q = foldTr((filterText||'').trim());
+  const opts = s.options.filter(o => !q || foldTr(o).indexOf(q)!==-1);
+  const list = s.panel.querySelector('.csel-list');
+  list.innerHTML = `<div class="csel-item${!state[s.key]?' sel':''}" data-val="">Tümü</div>` +
+    (opts.length===0
+      ? `<div class="csel-empty">Sonuç yok</div>`
+      : opts.map(o=>`<div class="csel-item${state[s.key]===o?' sel':''}" data-val="${escapeAttr(o)}">${escapeHtml(o)}</div>`).join(''));
+  list.querySelectorAll('.csel-item[data-val]').forEach(item=>{
     item.addEventListener('click', ()=>{
       const val = item.dataset.val;
       closeCsel(s);
