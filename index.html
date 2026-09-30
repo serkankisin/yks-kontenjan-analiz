@@ -310,7 +310,9 @@
   .stat.hi .num{color:var(--teal-dark);}
 
   .table-scroll{
-    overflow-x:auto;
+    overflow:auto;
+    max-height:calc(100vh - 24px);   /* dikey kaydırma kutunun içinde olsun ki sütun başlıkları hep görünsün */
+    overscroll-behavior:auto;
     border:1px solid var(--line);
     border-radius:3px;
     background:var(--white);
@@ -326,7 +328,7 @@
   table.view-programtotals{min-width:1060px;}
   thead th{
     position:sticky;
-    top:env(safe-area-inset-top, 0px);
+    top:0;
     z-index:5;
     background:var(--ink);
     color:var(--paper);
