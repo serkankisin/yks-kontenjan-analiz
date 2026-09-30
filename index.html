@@ -443,6 +443,23 @@
     padding:0 10px;
   }
 
+  /* Ziyaretçi istatistikleri (sağ üst) */
+  header.masthead{position:relative;}
+  .visit-stats{
+    position:absolute;top:12px;right:16px;
+    display:flex;align-items:center;gap:0;
+    background:var(--white);border:1px solid var(--line);border-radius:18px;
+    font-size:12px;color:var(--ink-soft);box-shadow:0 1px 3px rgba(0,0,0,.05);
+    overflow:hidden;
+  }
+  .visit-stats[hidden]{display:none;}
+  .visit-stats .vs{display:flex;align-items:center;gap:5px;padding:5px 11px;white-space:nowrap;}
+  .visit-stats .vs + .vs{border-left:1px solid var(--line-soft);}
+  .visit-stats b{color:var(--teal-dark);font-weight:700;font-variant-numeric:tabular-nums;}
+  @media (max-width: 900px){
+    .visit-stats{position:static;justify-content:center;flex-wrap:wrap;width:max-content;max-width:100%;margin:0 auto 12px;}
+  }
+
   @media (max-width: 640px){
     .stats-row{grid-template-columns:repeat(2,1fr);}
     .stat{padding:10px 6px;}
@@ -452,6 +469,11 @@
 <body>
 
 <header class="masthead">
+  <div class="visit-stats sans" id="visit-stats" hidden aria-label="Ziyaretçi istatistikleri">
+    <span class="vs" title="Sayfanın toplam açılma sayısı">👁 <b id="vs-total">–</b> ziyaret</span>
+    <span class="vs" title="Farklı tarayıcı sayısı (her tarayıcı bir kez sayılır)">👤 <b id="vs-unique">–</b> kişi</span>
+    <span class="vs" title="Ziyaret başına sayfanın açık ve görünür olduğu ortalama süre">⏱ Ort. <b id="vs-avg">–</b></span>
+  </div>
   <div class="logo-row">
     <div class="logo-wrap">
       <div class="logo-btn">
@@ -1289,6 +1311,49 @@ elThead.addEventListener('click', (e)=>{
 
 loadAll();
 
+/* -------------------- ziyaretçi istatistikleri --------------------
+   Sunucusuz sayaç: abacus.jasoncameron.dev (üyeliksiz, ücretsiz).
+   ziyaret = her açılış · tekil = tarayıcı başına bir kez · sure15 = sayfanın görünür olduğu her 15 sn */
+(function visitStats(){
+  const API = 'https://abacus.jasoncameron.dev';
+  // Yerel denemeler gerçek sayaçları etkilemesin
+  const NS = /^(localhost|127\.0\.0\.1)$/.test(location.hostname) ? 'serkankisin-yks-kontenjan-test' : 'serkankisin-yks-kontenjan';
+  const TICK = 15, MAX_TICKS = 120;          // ziyaret başına en fazla 30 dk sayılır (açık unutulan sekmeler ortalamayı şişirmesin)
+  const box = document.getElementById('visit-stats');
+  const hit = k => fetch(`${API}/hit/${NS}/${k}`, {keepalive:true}).then(r => r.ok ? r.json() : null).then(j => j ? j.value : null).catch(() => null);
+  const get = k => fetch(`${API}/get/${NS}/${k}`).then(r => r.ok ? r.json() : {value:0}).then(j => j.value || 0).catch(() => null);
+
+  let isNew = false;
+  try { if (!localStorage.getItem('yks_ziyaretci')) { localStorage.setItem('yks_ziyaretci', '1'); isNew = true; } } catch (e) {}
+
+  const fmtDur = s => {
+    s = Math.round(s);
+    if (s < 60) return s + ' sn';
+    const m = Math.floor(s / 60), r = s % 60;
+    return m + ' dk' + (r ? ' ' + r + ' sn' : '');
+  };
+  Promise.all([hit('ziyaret'), isNew ? hit('tekil') : get('tekil'), get('sure15')]).then(([v, u, t]) => {
+    if (!v) return;                          // hizmete ulaşılamazsa kutu gizli kalır
+    document.getElementById('vs-total').textContent = Number(v).toLocaleString('tr-TR');
+    document.getElementById('vs-unique').textContent = Number(u || 0).toLocaleString('tr-TR');
+    document.getElementById('vs-avg').textContent = fmtDur((t || 0) * TICK / v);
+    box.hidden = false;
+  });
+
+  // Kalma süresi: yalnızca sekme görünürken saniye say, her 15 sn'de bir kaydet.
+  let secs = 0, ticks = 0;
+  const flush = (partial) => {
+    if (ticks >= MAX_TICKS) return;
+    if (secs >= TICK || (partial && secs >= TICK / 2)) { secs = 0; ticks++; hit('sure15'); }
+  };
+  setInterval(() => {
+    if (document.visibilityState !== 'visible' || ticks >= MAX_TICKS) return;
+    secs++;
+    if (secs >= TICK) flush(false);
+  }, 1000);
+  // Sayfadan ayrılırken kalan süre yarım adımı geçtiyse onu da say (yuvarlama).
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') flush(true); });
+})();
 
 })();
 </script>
