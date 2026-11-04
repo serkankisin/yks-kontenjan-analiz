@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>YKS Kontenjan ve Kayıt Analizi (2025–2026)</title>
+<title>YKS Kontenjan ve Kayıt Analizi (2024–2026)</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎓</text></svg>">
 <style>
   :root{
@@ -310,6 +310,19 @@
   }
   .stat.hi .num{color:var(--teal-dark);}
 
+  /* Taban / Tavan sekmesi: puan türü ve burs türü özetleri */
+  .puan-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:16px;margin-bottom:20px;}
+  .puan-stats[hidden]{display:none;}
+  .ps-box{background:var(--white);border:1px solid var(--line);border-radius:3px;padding:12px 14px;overflow-x:auto;}
+  .ps-box h4{margin:0 0 8px;font-size:13px;color:var(--teal-dark);font-weight:600;}
+  .ps-box table{width:100%;border-collapse:collapse;font-size:12px;}
+  .ps-box th{text-align:right;font-weight:500;color:var(--ink-soft);padding:4px 6px;border-bottom:1px solid var(--line);white-space:nowrap;}
+  .ps-box th,.ps-box td[title]{cursor:help;}
+  .ps-box th:first-child,.ps-box td:first-child{text-align:left;}
+  .ps-box td{text-align:right;padding:4px 6px;border-bottom:1px solid var(--line-soft);font-variant-numeric:tabular-nums;white-space:nowrap;}
+  .ps-box .up{color:var(--good);} .ps-box .down{color:var(--bad);}
+  .ps-box p{margin:8px 0 0;font-size:11px;color:var(--ink-soft);line-height:1.4;}
+
   .table-scroll{
     overflow:auto;
     max-height:calc(100vh - 24px);   /* dikey kaydırma kutunun içinde olsun ki sütun başlıkları hep görünsün */
@@ -327,6 +340,11 @@
   table.view-university{min-width:1080px;}
   table.view-program{min-width:1900px;}
   table.view-programtotals{min-width:1060px;}
+  /* Taban / Tavan: yatay kaydırma olmadan tek ekrana sığar; uzun adlar alt satıra geçer */
+  table.view-puan td{padding:6px 6px;}
+  table.view-puan td.num{white-space:nowrap;}
+  table.view-puan td .cd{font-size:10.5px;}
+  sup.ekm{font-size:9px;font-weight:700;color:var(--accent);margin-left:2px;letter-spacing:.02em;}
   thead th{
     position:sticky;
     top:0;
@@ -448,7 +466,8 @@
   .year-row{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:-2px 0 16px;}
   .year-lbl{font-size:11.5px;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.06em;font-weight:600;}
   .year-seg{display:inline-flex;border:1.5px solid var(--teal);border-radius:4px;overflow:hidden;}
-  .year-btn{font-family:inherit;font-size:14px;font-weight:600;padding:7px 16px;border:none;background:transparent;color:var(--teal-dark);cursor:pointer;}
+  .year-seg + .year-lbl{margin-left:8px;}
+  .year-btn{font-family:inherit;font-size:14px;font-weight:600;padding:7px 14px;border:none;background:transparent;color:var(--teal-dark);cursor:pointer;}
   .year-btn + .year-btn{border-left:1.5px solid var(--teal);}
   .year-btn.active{background:var(--teal);color:var(--white);}
   .year-btn.cmp.active{background:var(--teal-dark);}
@@ -467,6 +486,56 @@
   td .cd{display:block;font-size:11px;line-height:1.3;margin-top:2px;white-space:nowrap;font-weight:600;}
   td .cd .cp{font-weight:400;color:var(--ink-soft);}
   .cd.up{color:var(--good);} .cd.down{color:var(--bad);} .cd.flat, .cd.neu{color:var(--ink-soft);}
+  /* 3 yıllık gidişat: mini çizgi grafik + yıl değerleri */
+  td .cd svg.spk{vertical-align:-2px;margin-right:4px;overflow:visible;}
+  td .cd3{display:block;font-size:10.5px;line-height:1.25;color:var(--ink-soft);white-space:nowrap;font-weight:400;}
+  .stat .sub .y3{display:block;}
+  /* Satıra tıklayınca açılan yıl yıl grafik paneli */
+  tr.cmp-row{cursor:pointer;}
+  tr.cmp-row:hover > td{background:var(--line-soft);}
+  tr.cmp-row.open > td{background:var(--line-soft);border-bottom-color:transparent;}
+  tr.cmp-row:focus-visible{outline:2px solid var(--accent);outline-offset:-2px;}
+  tr.cmp-detail > td{background:var(--paper);padding:0;border-bottom:2px solid var(--teal);text-align:left;}
+  .cmp-detail-in{position:sticky;left:0;box-sizing:border-box;padding:14px 16px 12px;animation:cdIn .18s ease-out;}
+  @keyframes cdIn{from{opacity:0;transform:translateY(-4px);}to{opacity:1;transform:none;}}
+  @media (prefers-reduced-motion: reduce){.cmp-detail-in{animation:none;}}
+  .cd-head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:10px;}
+  .cd-head h5{margin:0;font-size:14px;font-weight:700;color:var(--teal-dark);}
+  .cd-head h5 span{font-weight:400;color:var(--ink-soft);}
+  .cd-close{font-family:inherit;font-size:12px;border:1px solid var(--line);background:var(--white);color:var(--ink-soft);border-radius:14px;padding:4px 10px;cursor:pointer;}
+  .cd-close:hover{border-color:var(--teal);color:var(--teal-dark);}
+  .cd-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px;}
+  .cd-card{background:var(--white);border:1px solid var(--line);border-radius:8px;padding:10px 12px 4px;}
+  .cd-k{font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--ink-soft);}
+  .cd-v{font-size:21px;font-weight:700;color:var(--ink);line-height:1.2;margin-top:2px;}
+  .cd-card .dl{display:block;font-size:12px;font-weight:600;margin:1px 0 2px;}
+  .cd-card .dl.up{color:var(--good);} .cd-card .dl.down{color:var(--bad);} .cd-card .dl.flat{color:var(--ink-soft);}
+  .cd-card .dl-s{font-weight:400;color:var(--ink-soft);}
+  .cd-card svg{display:block;width:100%;height:auto;overflow:visible;}
+  .cd-base{stroke:var(--line);stroke-width:1;}
+  .cd-line{fill:none;stroke:var(--teal);stroke-width:2;stroke-linejoin:round;stroke-linecap:round;}
+  .cd-dot{fill:var(--teal);stroke:var(--white);stroke-width:2;}
+  .cd-dot.last{fill:var(--teal-dark);}
+  .cd-hit{fill:transparent;}
+  .cd-pt{cursor:help;}
+  .cd-pt:hover .cd-dot{stroke:var(--accent);}
+  .cd-val{font-size:10.5px;fill:var(--ink-soft);font-variant-numeric:tabular-nums;}
+  .cd-val.last{fill:var(--ink);font-weight:700;}
+  .cd-yr{font-size:10.5px;fill:var(--ink-soft);}
+  .cd-na{font-size:10.5px;fill:var(--ink-soft);font-style:italic;}
+  .cd-foot{margin:8px 0 0;font-size:11.5px;color:var(--ink-soft);}
+  tr.cmp-row > td.kod:first-child{white-space:nowrap;}
+  tr.cmp-row .cx{display:inline-block;width:10px;margin-right:2px;color:var(--teal-dark);font-weight:700;}
+  tr.cmp-row:hover .cx, tr.cmp-row.open .cx{color:var(--accent);}
+  .cd-close kbd{font-family:inherit;font-size:10px;border:1px solid var(--line);border-radius:3px;padding:0 4px;margin-left:4px;color:var(--ink-soft);}
+  .cd-sum{list-style:none;margin:0 0 12px;padding:10px 12px;display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:6px 18px;
+    background:var(--white);border:1px solid var(--line);border-left:3px solid var(--teal);border-radius:6px;font-size:13px;color:var(--ink);line-height:1.45;}
+  .cd-sum li{display:flex;gap:6px;align-items:baseline;}
+  .cd-sum li > b{flex:none;width:14px;text-align:center;}
+  .cd-sum li.up > b{color:var(--good);} .cd-sum li.down > b{color:var(--bad);} .cd-sum li.flat > b{color:var(--ink-soft);}
+  .cd-k{cursor:help;}
+  .cd-i{font-style:normal;font-weight:400;color:var(--teal-dark);margin-left:2px;}
+  .cmp-hint{display:inline-block;margin-left:6px;padding:1px 8px;border-radius:10px;background:var(--line-soft);color:var(--teal-dark);font-weight:600;}
   .st-badge{display:inline-block;font-size:11px;font-weight:700;padding:2px 7px;border-radius:10px;white-space:nowrap;}
   .st-badge.yeni{background:#e3f6ec;color:#1f7a52;}
   .st-badge.kapanan{background:#fbe7e2;color:#a2442a;}
@@ -591,7 +660,14 @@
       <div class="year-seg">
         <button type="button" class="year-btn active" data-year="2026" aria-pressed="true">2026</button>
         <button type="button" class="year-btn" data-year="2025" aria-pressed="false">2025</button>
-        <button type="button" class="year-btn cmp" data-year="cmp" aria-pressed="false">2025 ↔ 2026 Karşılaştır</button>
+        <button type="button" class="year-btn" data-year="2024" aria-pressed="false">2024</button>
+      </div>
+      <span class="year-lbl">Karşılaştır</span>
+      <div class="year-seg">
+        <button type="button" class="year-btn cmp" data-year="cmp:2025-2026" aria-pressed="false">2025 ↔ 2026</button>
+        <button type="button" class="year-btn cmp" data-year="cmp:2024-2025" aria-pressed="false">2024 ↔ 2025</button>
+        <button type="button" class="year-btn cmp" data-year="cmp:2024-2026" aria-pressed="false">2024 ↔ 2026</button>
+        <button type="button" class="year-btn cmp" data-year="trend" aria-pressed="false" title="2024 → 2025 → 2026: her hücrede 2026 değeri, altında 3 yılın gidişatı (mini grafik) ve 2024'e göre fark">📈 3 Yıllık Gidişat</button>
       </div>
       <span class="year-loading" id="year-loading" hidden>Veri yükleniyor…</span>
     </div>
@@ -665,14 +741,15 @@
     <button class="toggle-btn view-btn" data-view="university">Üniversite Toplamları</button>
     <button class="toggle-btn view-btn" data-view="programTotals">Program Toplamları</button>
     <button class="toggle-btn view-btn" data-view="city">Şehir Toplamları</button>
+    <button class="toggle-btn view-btn" data-view="puan">Taban / Tavan Puan</button>
   </div>
   <p class="sub sans" id="view-note" style="text-align:center;margin:-14px 0 22px;font-size:13px;"></p>
   <div class="cmp-bar sans" id="cmp-bar" hidden>
     <span class="cmp-lbl">Hazır sıralamalar:</span>
     <button type="button" class="chip" data-sort="r_kk" data-dir="-1">▲ Doluluğu en çok artan</button>
     <button type="button" class="chip" data-sort="r_kk" data-dir="1">▼ Doluluğu en çok düşen</button>
-    <button type="button" class="chip" data-sort="enk" data-dir="-1" data-view="program">▲ Taban puanı en çok yükselen</button>
-    <button type="button" class="chip" data-sort="enk" data-dir="1" data-view="program">▼ Taban puanı en çok düşen</button>
+    <button type="button" class="chip" data-sort="enk" data-dir="-1" data-view="puan">▲ Taban puanı en çok yükselen</button>
+    <button type="button" class="chip" data-sort="enk" data-dir="1" data-view="puan">▼ Taban puanı en çok düşen</button>
     <button type="button" class="chip" data-sort="kontenjan" data-dir="-1">▲ Kontenjanı en çok artan</button>
     <button type="button" class="chip" data-sort="kontenjan" data-dir="1">▼ Kontenjanı en çok azalan</button>
     <span class="cmp-sep"></span>
@@ -697,6 +774,7 @@
   <div class="map-tip sans" id="map-tip" role="tooltip"></div>
 
   <div class="stats-row sans" id="stats-row"></div>
+  <div class="puan-stats sans" id="puan-stats" hidden></div>
 
   <aside class="data-note sans" role="note" aria-labelledby="data-note-title">
     <h3 id="data-note-title"><span aria-hidden="true">ⓘ</span> Veri Notu</h3>
@@ -720,7 +798,7 @@
   <div id="uskudar-rank-note" class="uskudar-rank-note sans" hidden></div>
 
   <footer class="sans">
-    Tüm rakamlar yalnızca <b>Genel Kontenjan</b> üzerindendir (okul birincisi, depremzede, 34 yaş üstü kadın ve şehit/gazi yakını kontenjanları dahil değildir). "Kayıt Olan" sütunu, ilk yerleştirme kontenjanı ile ilgili yılın ek yerleştirmesindeki Genel Ek Kontenjan rakamı kullanılarak hesaplanmıştır: Kayıt Olan = Kontenjan − Genel Ek Kontenjan ("Eke Kalan"). Ek yerleştirmede yer almayan programlarda Eke Kalan 0 kabul edilmiştir. 2025 yılında vakıf üniversitelerinde, ilk yerleştirmede depremzede kontenjanından kayıt yaptıran her aday için YÖK, ek yerleştirmede aynı programın en düşük burs türüne +1 genel kontenjan eklemiştir; bu koltuklar boşalan yer olmadığından Eke Kalan'dan düşülmüş (depremzede kayıt = depremzede kontenjanı − depremzede ek kontenjanı) ve ilgili hücreler * ile işaretlenmiştir. Devlet üniversitelerinde ve 2026'da böyle bir uygulama olmadığından düzeltme yapılmamıştır. "2025 ↔ 2026 Karşılaştır" görünümünde programlar yıllar arasında program koduyla eşleştirilir; her hücrede 2026 değeri, altında 2025 değeri ve fark yer alır, sıralama farka göre yapılır. 2026'da olup 2025'te olmayan programlar "Yeni", 2025'te olup 2026'da olmayanlar "Kapanan" olarak işaretlenir. Ücret sütunları yalnızca 2026 içindir. "Program Listesi" görünümünde aynı üniversite/fakülte/program adının Burslu, %50 İndirimli, %25 İndirimli ve Ücretli gibi farklı burs türü seçenekleri tek satırda toplanır (kontenjan/yerleşen/kayıt rakamları toplanır); belirli bir burs türünü ayrıca görmek için "Burs Türü" filtresini kullanabilirsiniz. Oran sütunları yüzde olarak gösterilir: Yerleşen/Kontenjan kontenjanın ilk yerleştirmede yüzde kaçının dolduğunu, Kayıt/Yerleşen yerleşenlerin yüzde kaçının kayıt yaptırdığını, Kayıt/Kontenjan ise kontenjanın yüzde kaçının sonuçta fiilen dolduğunu gösterir. Bir sütun başlığına ilk tıklamada büyükten küçüğe, tekrar tıklayınca küçükten büyüğe sıralanır. Resmî sonuçlar için ÖSYM kılavuzlarını esas alınız.
+    Tüm rakamlar yalnızca <b>Genel Kontenjan</b> üzerindendir (okul birincisi, depremzede, 34 yaş üstü kadın ve şehit/gazi yakını kontenjanları dahil değildir). "Kayıt Olan" sütunu, ilk yerleştirme kontenjanı ile ilgili yılın ek yerleştirmesindeki Genel Ek Kontenjan rakamı kullanılarak hesaplanmıştır: Kayıt Olan = Kontenjan − Genel Ek Kontenjan ("Eke Kalan"). Ek yerleştirmede yer almayan programlarda Eke Kalan 0 kabul edilmiştir. 2024 ve 2025 yıllarında vakıf üniversitelerinde, ilk yerleştirmede depremzede kontenjanından kayıt yaptıran her aday için YÖK, ek yerleştirmede aynı programın en düşük burs türüne +1 genel kontenjan eklemiştir; bu koltuklar boşalan yer olmadığından Eke Kalan'dan düşülmüş (depremzede kayıt = depremzede kontenjanı − depremzede ek kontenjanı) ve ilgili hücreler * ile işaretlenmiştir. Devlet üniversitelerinde ve 2026'da böyle bir uygulama olmadığından düzeltme yapılmamıştır. "Karşılaştır" görünümlerinde (2025 ↔ 2026, 2024 ↔ 2025, 2024 ↔ 2026) programlar yıllar arasında program koduyla eşleştirilir; her hücrede sonraki yılın değeri, altında önceki yılın değeri ve fark yer alır. Sonraki yılda olup önceki yılda olmayan programlar "Yeni", önceki yılda olup sonraki yılda olmayanlar "Kapanan" olarak işaretlenir. "3 Yıllık Gidişat" görünümünde her hücrede 2026 değeri, altında 2024 → 2025 → 2026 mini grafiği, 2024'e göre fark ve 2024/2025 değerleri yer alır. Ücret sütunları yalnızca 2026 içindir. "Program Listesi" görünümünde aynı üniversite/fakülte/program adının Burslu, %50 İndirimli, %25 İndirimli ve Ücretli gibi farklı burs türü seçenekleri tek satırda toplanır (kontenjan/yerleşen/kayıt rakamları toplanır); belirli bir burs türünü ayrıca görmek için "Burs Türü" filtresini kullanabilirsiniz. Oran sütunları yüzde olarak gösterilir: Yerleşen/Kontenjan kontenjanın ilk yerleştirmede yüzde kaçının dolduğunu, Kayıt/Yerleşen yerleşenlerin yüzde kaçının kayıt yaptırdığını, Kayıt/Kontenjan ise kontenjanın yüzde kaçının sonuçta fiilen dolduğunu gösterir. Bir sütun başlığına ilk tıklamada büyükten küçüğe, tekrar tıklayınca küçükten büyüğe sıralanır. Resmî sonuçlar için ÖSYM kılavuzlarını esas alınız.
   </footer>
 </div>
 
@@ -788,7 +866,13 @@ const COLUMNS_PROGTOTAL = [
 ];
 
 /* -------------------- yıllar & karşılaştırma -------------------- */
-const YEARS = ['2026', '2025'];          // en yeni başta
+const YEARS = ['2026', '2025', '2024'];  // en yeni başta
+// Karşılaştırma yılları: CA = önceki, CB = sonraki; 3 yıllık gidişatta CM = aradaki yıl (yoksa null)
+let CA = '2025', CB = '2026', CM = null;
+const yy = (y) => String(y).slice(2);
+// Bulunma eki: 2024'te, 2025'te, 2026'da
+const deY = (y) => y + ({'3':"'te", '4':"'te", '5':"'te", '6':"'da", '9':"'da", '0':"'da"}[String(y).slice(-1)] || "'de");
+const isTrend = () => state.year === 'trend';
 const ONLY_2026 = new Set(['f_ucretli', 'f_i50', 'f_i25']);   // ücretler yalnızca 2026 için var
 // good: +1 artış olumlu, -1 azalış olumlu, 0 nötr (yalnızca renk için)
 const CMP_METRICS = [
@@ -800,9 +884,13 @@ const CMP_METRICS = [
   {key:'ek',        label:'Eke Kalan',   fmt:'num',   good:-1},
   {key:'ekYer',     label:'Ek Yerleşen', fmt:'num',   good:1},
 ];
-const cmpCol = (m) => ({key:m.key, label:m.label, sub:'25 → 26', num:true, sortable:true, cmp:true, fmt:m.fmt, good:m.good,
-  full:`${m.full || m.label}: büyük rakam 2026, altında fark ve 2025 değeri. Başlığa tıklayınca değere göre (2026; yoksa 2025) sıralanır.`});
-const DURUM_COL = {key:'durum', label:'Durum', num:false, sortable:true, durum:true, full:'Yeni = 2026\'da açılan · Kapanan = 2026\'da bulunmayan'};
+// Başlık alt yazısı ve açıklaması seçili yıllara göre (getter: yıl değişince yeniden kurmaya gerek yok)
+const cmpCol = (m) => ({key:m.key, label:m.label, num:true, sortable:true, cmp:true, fmt:m.fmt, good:m.good,
+  get sub(){ return isTrend() ? `${yy(CA)} · ${yy(CM)} · ${yy(CB)}` : `${yy(CA)} → ${yy(CB)}`; },
+  get full(){ return isTrend()
+    ? `${m.full || m.label}: büyük rakam ${CB}, altında ${CA} → ${CM} → ${CB} gidişatı (mini grafik), ${CA}'e göre fark ve yıl değerleri. Başlığa tıklayınca ${CB} değerine göre sıralanır.`
+    : `${m.full || m.label}: büyük rakam ${CB}, altında fark ve ${CA} değeri. Başlığa tıklayınca değere göre (${CB}; yoksa ${CA}) sıralanır.`; }});
+const DURUM_COL = {key:'durum', label:'Durum', num:false, sortable:true, durum:true, get full(){ return `Yeni = ${deY(CB)} açılan (${CA}'te olmayan) · Kapanan = ${CA}'te olup ${deY(CB)} bulunmayan`; }};
 const pickCol = (key) => COLUMNS_PROGRAM.find(c => c.key === key);
 const COLUMNS_CMP_PROGRAM = ['kod','seviye','uniT','sehir','uni','fak','prog','burs','puan'].map(pickCol)
   .concat([DURUM_COL], CMP_METRICS.map(cmpCol));
@@ -822,6 +910,24 @@ const COLUMNS_CMP_CITY = [CITY_COL,
   cmpCol({key:'uniCount',  label:'Üniversite', fmt:'num', good:0, full:'Üniversite sayısı'}),
   cmpCol({key:'progCount', label:'Program',    fmt:'num', good:0, full:'Program sayısı'})]
   .concat(CMP_METRICS.filter(m => !m.programOnly).map(cmpCol));
+// Taban / Tavan Puan sekmesi: her satır tek bir program kodu (burs seçenekleri ayrı), yalnızca Genel Kontenjan puanları
+// Tek ekrana sığsın diye yalnızca temel kimlik sütunları (burs türü program adında yazar; tür/şehir filtrelerden seçilir)
+const PUAN_IDENT = ['uni','prog'].map(pickCol).concat([{key:'puan', label:'Puan', full:'Puan Türü', num:false, sortable:true}]);
+const COLUMNS_PUAN = PUAN_IDENT.concat([
+  {key:'kontenjan', label:'Kont.', full:'Genel Kontenjan (İlk Yerleştirme)', num:true, sortable:true},
+  {key:'yerlesen',  label:'Yerl.',  full:'Yerleşen (İlk Yerleştirme)', num:true, sortable:true},
+  {key:'enk',   label:'Taban Puan', full:'Taban puan — Genel Kontenjan; ilk ve ek yerleştirmeden düşük olan (ek: ek yerleştirmeden geldi)', num:true, sortable:true, fmt:'puan', cellCls:'good'},
+  {key:'enb',   label:'Tavan Puan', full:'Tavan puan — Genel Kontenjan; ilk ve ek yerleştirmeden büyük olan', num:true, sortable:true, fmt:'puan'},
+  {key:'makas', label:'Puan Makası', full:'Tavan − Taban: küçükse program dar bir puan aralığından dolmuştur', num:true, sortable:true, fmt:'puan'},
+  {key:'r_kk',  label:'Kay/Kont %', parts:['kayitOlan','kontenjan'], full:'Kayıt Olan / Kontenjan (%)', num:true, sortable:true, cellCls:'ratio', fmt:'ratio'},
+]);
+const COLUMNS_CMP_PUAN = PUAN_IDENT.concat([
+  {key:'kontenjan', label:'Kont.', get full(){ return `${CB} Genel Kontenjan`; }, num:true, sortable:true},
+  cmpCol({key:'enk',   label:'Taban Puan',  fmt:'puan', good:1, full:'Taban puan (Genel Kontenjan en küçük puan)'}),
+  cmpCol({key:'enb',   label:'Tavan Puan',  fmt:'puan', good:1, full:'Tavan puan (Genel Kontenjan en büyük puan)'}),
+  cmpCol({key:'makas', label:'Puan Makası', fmt:'puan', good:0, full:'Tavan − Taban'}),
+  cmpCol({key:'r_kk',  label:'Doluluk %',   fmt:'ratio', good:1, full:'Doluluk = Kayıt Olan / Kontenjan'}),
+]);
 const SUM_KEYS = ['kontenjan', 'yerlesen', 'kayitOlan', 'ek', 'ekYer'];
 const DELTA_KEYS = SUM_KEYS.concat(['enk', 'r_kk', 'progCount', 'uniCount']);
 
@@ -833,7 +939,7 @@ const BURS_ORDER = ['Burslu','%50 İndirimli','%25 İndirimli','Ücretli','Belir
 const state = {
   seviye: '', uniType: '', sehir: '', uni: '', fak: '', puan: '', dil: '', burs: '',
   search: '', onlyVacant: false, uskudarScope: false,
-  year: '2026',          // '2026' | '2025' | 'cmp'
+  year: '2026',          // '2026' | '2025' | '2024' | 'cmp:<önceki>-<sonraki>' | 'trend'
   cmpStatus: '',         // karşılaştırmada: '' | 'yeni' | 'kapanan'
   sortMode: 'deger',     // karşılaştırma sütunlarında: 'deger' (başlıktan) | 'fark' (hazır sıralamalar)
   view: 'auto',
@@ -853,6 +959,7 @@ let programGrouped = [];
 let aggregated = [];
 let programTotals = [];
 let cmpProgram = [], cmpUni = [], cmpTot = [];
+let puanRows = [];
 const DATASETS = {};     // yıl → çözülmüş satırlar
 const KOD_MAP = {};      // yıl → Map(program kodu → satır)
 
@@ -880,7 +987,7 @@ function decodeDataset(raw, seviyeLabel, year){
       ekYer: (r[16]===undefined ? null : r[16]),
       ucret: (r[17]===undefined ? null : r[17]),
       ekIlan: (r[18]===undefined || r[18]===null) ? r[10] : r[18],   // ÖSYM'nin ilan ettiği Genel Ek Kontenjan
-      depAkt: r[19] || 0,                                            // 2025 vakıf: depremzede aktarımı (Eke Kalan'dan düşülen)
+      depAkt: r[19] || 0,                                            // 2024-2025 vakıf: depremzede aktarımı (Eke Kalan'dan düşülen)
       seviye: seviyeLabel,
       year: year,
     };
@@ -895,8 +1002,14 @@ function loadYear(y){
       const rows = decodeDataset(raw.onlisans, 'Ön Lisans', y).concat(decodeDataset(raw.lisans, 'Lisans', y));
       DATASETS[y] = rows;
       KOD_MAP[y] = new Map(rows.map(r => [String(r.kod), r]));
-      return rows;
+      return loadEkPuan(y).then(() => rows);
     });
+}
+// Ek yerleştirme Genel Kontenjan taban/tavan puanları (yalnızca Taban / Tavan sekmesinde kullanılır): kod → [taban, tavan]
+const EK_PUAN = {};
+function loadEkPuan(y){
+  if (EK_PUAN[y]) return Promise.resolve(EK_PUAN[y]);
+  return fetch(`data/ek-puan-${y}.json`).then(r => r.ok ? r.json() : {}).catch(() => ({})).then(j => (EK_PUAN[y] = j));
 }
 
 function uniqueSorted(arr){
@@ -1128,7 +1241,42 @@ function effectiveView(){
   if (state.view === 'university') return 'university';
   if (state.view === 'programTotals') return 'programTotals';
   if (state.view === 'city') return 'city';
+  if (state.view === 'puan') return 'puan';
   return state.uni ? 'program' : 'university';
+}
+
+// Taban / Tavan satırları: program kodu başına. Karşılaştırmada 2026 kodları, 2025 değerleri aynı koddan.
+function buildPuanRows(rows){
+  // Taban = ilk ve ek yerleştirme Genel Kontenjan tabanlarından düşük olanı (yalnızca biri varsa o).
+  // Tavan = ikisinden büyük olanı. Ek yerleştirmeye kontenjan kalmadıysa ilk yerleştirme puanları geçerli.
+  const one = (r) => {
+    const ek = (EK_PUAN[r.year] || {})[String(r.kod)] || null;
+    const iT = r.enk ?? null, iV = r.enb ?? null, eT = ek ? ek[0] : null, eV = ek ? ek[1] : null;
+    const enk = iT == null ? eT : eT == null ? iT : Math.min(iT, eT);
+    const enb = iV == null ? eV : eV == null ? iV : Math.max(iV, eV);
+    return {kod:r.kod, seviye:r.seviye, uniT:r.uniT, sehir:r.sehir, uni:r.uni, fak:r.fak, prog:r.prog, progBase:r.progBase,
+      burs:r.burs, puan:r.puan, dil:r.dil, kontenjan:r.kontenjan, yerlesen:r.yerlesen, kayitOlan:r.kayitOlan,
+      enk, enb, ilkT:iT, ilkV:iV, ekT:eT, ekV:eV,
+      enkEk: enk != null && eT != null && enk === eT && enk !== iT,     // taban ek yerleştirmeden geldi
+      enbEk: enb != null && eV != null && enb === eV && enb !== iV,
+      makas:(enk != null && enb != null) ? enb - enk : null,
+      r_kk:r.kontenjan > 0 ? r.kayitOlan / r.kontenjan : null};
+  };
+  if (!isCmp()) return rows.map(one);
+  const mapA = KOD_MAP[CA], mapM = CM ? KOD_MAP[CM] : null;
+  return rows.filter(r => r.year === CB).map(r => {
+    const o = one(r), p = mapA.get(String(r.kod)), q = p ? one(p) : null;
+    const pm = mapM ? mapM.get(String(r.kod)) : null, qm = pm ? one(pm) : null;
+    o._q = q; o._qm = qm;
+    for (const k of ['enk', 'enb', 'makas', 'r_kk']){
+      o[k + '_p'] = q ? q[k] : null;
+      o[k + '_m'] = qm ? qm[k] : null;
+      o[k + '_d'] = (o[k] != null && o[k + '_p'] != null) ? o[k] - o[k + '_p'] : null;
+    }
+    o.kontenjan_p = q ? q.kontenjan : null;
+    o.kontenjan_m = qm ? qm.kontenjan : null;
+    return o;
+  });
 }
 
 function buildUniversityAgg(progRows){
@@ -1188,15 +1336,19 @@ function buildProgramTotals(rows){
   return out;
 }
 
-/* -------------------- karşılaştırma (2025 ↔ 2026) --------------------
-   Programlar yıllar arasında program koduyla eşleştirilir. Filtreler 2026 satırlarına uygulanır;
-   eşleşen 2025 rakamları tam 2025 verisinden alınır (2025'te farklı yazılmış bir alan eşleşmeyi bozmasın).
-   2026'da hiç bulunmayan 2025 programları ("Kapanan") ise filtrelerden geçerek eklenir. */
+/* -------------------- karşılaştırma (CA ↔ CB; gidişatta CA → CM → CB) --------------------
+   Programlar yıllar arasında program koduyla eşleştirilir. Filtreler sonraki yılın (CB) satırlarına uygulanır;
+   eşleşen önceki yıl rakamları o yılın tam verisinden alınır (farklı yazılmış bir alan eşleşmeyi bozmasın).
+   CB'de hiç bulunmayan CA programları ("Kapanan") ise filtrelerden geçerek eklenir. */
 function finishCmp(o, hasCur, hasPrev){
   if (!hasCur) for (const k of SUM_KEYS.concat(['enk', 'progCount', 'uniCount'])) o[k] = null;
   if (!hasPrev) for (const k of SUM_KEYS.concat(['enk', 'progCount', 'uniCount'])) o[k + '_p'] = null;
   o.r_kk   = hasCur  && o.kontenjan   > 0 ? o.kayitOlan   / o.kontenjan   : null;
   o.r_kk_p = hasPrev && o.kontenjan_p > 0 ? o.kayitOlan_p / o.kontenjan_p : null;
+  if (CM){   // 3 yıllık gidişat: aradaki yılın değerleri (_m)
+    if (!o._hm) for (const k of SUM_KEYS.concat(['enk', 'progCount', 'uniCount'])) o[k + '_m'] = null;
+    o.r_kk_m = o._hm && o.kontenjan_m > 0 ? o.kayitOlan_m / o.kontenjan_m : null;
+  }
   for (const k of DELTA_KEYS){
     const a = o[k], b = o[k + '_p'];
     o[k + '_d'] = (a !== null && a !== undefined && b !== null && b !== undefined) ? a - b : null;
@@ -1205,9 +1357,17 @@ function finishCmp(o, hasCur, hasPrev){
   return o;
 }
 function buildCompareRows(rows){
-  const set26 = KOD_MAP['2026'], map25 = KOD_MAP['2025'];
-  const cur = rows.filter(r => r.year === '2026');
-  const closed = rows.filter(r => r.year === '2025' && !set26.has(String(r.kod)));
+  const set26 = KOD_MAP[CB], map25 = KOD_MAP[CA], mapM = CM ? KOD_MAP[CM] : null;
+  const cur = rows.filter(r => r.year === CB);
+  const closed = rows.filter(r => r.year === CA && !set26.has(String(r.kod)));
+  // Gidişat: aradaki yılın satırları, iki uçtaki yılların program kodlarından (aynı kod)
+  const setMid = (o, kods) => {
+    if (!mapM) return;
+    const mid = Array.from(new Set(kods.map(String))).map(k => mapM.get(k)).filter(Boolean);
+    o._hm = mid.length > 0;
+    for (const k of SUM_KEYS) o[k + '_m'] = mid.reduce((s, r) => s + (r[k] || 0), 0);
+    o.enk_m = mid.reduce((m, r) => (r.enk === null || r.enk === undefined) ? m : (m === null ? r.enk : Math.min(m, r.enk)), null);
+  };
   const ident = (g) => ({seviye:g.seviye, uniT:g.uniT, sehir:g.sehir, uni:g.uni, fak:g.fak, prog:g.prog, dil:g.dil, puan:g.puan, kod:g.kod, burs:g.burs});
   // Aktarım: 2025'te kapanan kod(lar) ile 2026'da yeni açılan kod(lar) aynı programa aitse
   // (aynı seviye + üniversite + program adı/dil + puan türü; yalnızca burs türü ya da kod değişmiş)
@@ -1219,28 +1379,29 @@ function buildCompareRows(rows){
   const out = [];
   for (const g of buildProgramGrouped(cur)){
     let prevRows = g.kodList.map(k => map25.get(String(k))).filter(Boolean);
-    const newRows = g.kodList.filter(k => !map25.has(String(k))).map(k => KOD_MAP['2026'].get(String(k))).filter(Boolean);
-    // Kapanan kod(lar)ın programı 2026'da devam ediyorsa (yeni kodla ya da mevcut burs seçeneklerinde) bu bir aktarımdır.
-    // Tür, programın toplam kontenjanına göre: 2025 (kapanan dahil tüm seçenekler) ↔ 2026.
+    const newRows = g.kodList.filter(k => !map25.has(String(k))).map(k => KOD_MAP[CB].get(String(k))).filter(Boolean);
+    // Kapanan kod(lar)ın programı sonraki yılda devam ediyorsa (yeni kodla ya da mevcut burs seçeneklerinde) bu bir aktarımdır.
+    // Tür, programın toplam kontenjanına göre: önceki yıl (kapanan dahil tüm seçenekler) ↔ sonraki yıl.
     let akt = null;
     const cl = (closedByKey.get(progKey({seviye:g.seviye, uni:g.uni, prog:g.prog, puan:g.puan})) || []).filter(r => !usedClosed.has(r));
     if (cl.length){
       cl.forEach(r => usedClosed.add(r));
       prevRows = prevRows.concat(cl);
-      const rows26 = g.kodList.map(k => KOD_MAP['2026'].get(String(k))).filter(Boolean);
+      const rows26 = g.kodList.map(k => KOD_MAP[CB].get(String(k))).filter(Boolean);
       const sumK = (rows) => rows.reduce((s, r) => s + (r.kontenjan || 0), 0);
       const yeniK = sumK(rows26), eskiK = sumK(prevRows);
       const det = (rows) => rows.slice().sort((a, b) => bursSortIndex(a.burs) - bursSortIndex(b.burs)).map(r => `${r.burs} ${fmtNum(r.kontenjan)}`).join(' + ');
       akt = {yeniK, eskiK,
         tip: `Kapanan: ${cl.map(r => `${r.burs} ${fmtNum(r.kontenjan)} (kod ${r.kod})`).join(', ')}` +
-             (newRows.length ? ` · 2026'da yeni açılan: ${newRows.map(r => `${r.burs} ${fmtNum(r.kontenjan)} (kod ${r.kod})`).join(', ')}` : ' · kontenjan mevcut burs seçeneklerine aktarıldı') +
-             ` · Program toplamı 2025: ${det(prevRows)} = ${fmtNum(eskiK)} → 2026: ${det(rows26)} = ${fmtNum(yeniK)}`};
+             (newRows.length ? ` · ${deY(CB)} yeni açılan: ${newRows.map(r => `${r.burs} ${fmtNum(r.kontenjan)} (kod ${r.kod})`).join(', ')}` : ' · kontenjan mevcut burs seçeneklerine aktarıldı') +
+             ` · Program toplamı ${CA}: ${det(prevRows)} = ${fmtNum(eskiK)} → ${CB}: ${det(rows26)} = ${fmtNum(yeniK)}`};
     }
     const o = ident(g);
     for (const k of SUM_KEYS){ o[k] = g[k]; o[k + '_p'] = prevRows.reduce((s, r) => s + (r[k] || 0), 0); }
     o.enk = g.enk;
     o.enk_p = prevRows.reduce((m, r) => (r.enk === null || r.enk === undefined) ? m : (m === null ? r.enk : Math.min(m, r.enk)), null);
     o._prev = prevRows;
+    setMid(o, g.kodList.concat(prevRows.map(r => r.kod)));
     finishCmp(o, true, prevRows.length > 0);
     if (akt){
       o.durum = akt.yeniK === akt.eskiK ? 'Aktarım' : akt.yeniK > akt.eskiK ? 'Yükseltilerek aktarım' : 'Azaltılarak aktarım';
@@ -1254,6 +1415,7 @@ function buildCompareRows(rows){
     for (const k of SUM_KEYS){ o[k] = null; o[k + '_p'] = g[k]; }
     o.enk = null; o.enk_p = g.enk;
     o._prev = g.kodList.map(k => map25.get(String(k))).filter(Boolean);
+    setMid(o, g.kodList);
     out.push(finishCmp(o, false, true));
   }
   return out;
@@ -1268,18 +1430,21 @@ function aggCmp(rows, keyFn, initFn){
       g = initFn(r); g._c = false; g._p = false;
       for (const k of SUM_KEYS){ g[k] = 0; g[k + '_p'] = 0; }
       g.progCount = 0; g.progCount_p = 0; g._u = new Set(); g._up = new Set();
+      if (CM){ g._hm = false; g.progCount_m = 0; g._um = new Set(); for (const k of SUM_KEYS) g[k + '_m'] = 0; }
       map.set(key, g);
     }
     if (r.durum !== 'Kapanan'){ g._c = true; g.progCount++; g._u.add(r.uni); for (const k of SUM_KEYS) g[k] += r[k] || 0; }
     if (r.durum !== 'Yeni'){ g._p = true; g.progCount_p++; g._up.add(r.uni); for (const k of SUM_KEYS) g[k + '_p'] += r[k + '_p'] || 0; }
+    if (CM && r._hm){ g._hm = true; g.progCount_m++; g._um.add(r.uni); for (const k of SUM_KEYS) g[k + '_m'] += r[k + '_m'] || 0; }
   }
   return Array.from(map.values()).map(g => {
     g.uniCount = g._u.size; g.uniCount_p = g._up.size; g.enk = null; g.enk_p = null;
+    if (CM){ g.uniCount_m = g._um.size; g.enk_m = null; }
     return finishCmp(g, g._c, g._p);
   });
 }
 
-function isCmp(){ return state.year === 'cmp'; }
+function isCmp(){ return state.year.startsWith('cmp') || state.year === 'trend'; }
 
 // Şehir satırları ve her şehrin altındaki üniversite satırları (mevcut filtrelerle)
 function buildCityRows(){
@@ -1312,6 +1477,7 @@ function buildCityRows(){
 function currentColumns(){
   const v = effectiveView();
   if (v==='city') return isCmp() ? COLUMNS_CMP_CITY : COLUMNS_CITY;
+  if (v==='puan') return isCmp() ? COLUMNS_CMP_PUAN : COLUMNS_PUAN;
   if (isCmp()){
     if (v==='university') return COLUMNS_CMP_UNI;
     if (v==='programTotals') return COLUMNS_CMP_PROGTOTAL;
@@ -1323,6 +1489,7 @@ function currentColumns(){
 function currentDataArray(){
   const v = effectiveView();
   if (v==='city') return cityRows;
+  if (v==='puan') return puanRows;
   if (isCmp()){
     if (v==='university') return cmpUni;
     if (v==='programTotals') return cmpTot;
@@ -1346,7 +1513,10 @@ function sortArray(arr, cols){
   // Karşılaştırmada çok küçük programlar (1-2 öğrenciyle %100 oynayan) isteğe bağlı olarak sona atılır
   const small = (col.cmp && isCmp() && document.getElementById('cmp-small').checked)
     ? (r) => Math.max(r.kontenjan || 0, r.kontenjan_p || 0) < 10 : null;
+  // Taban / Tavan: taban puanı oluşmayan ("—") programlar her sıralamada en altta
+  const noTaban = effectiveView() === 'puan' ? (r) => r.enk === null || r.enk === undefined : null;
   arr.sort((a,b)=>{
+    if (noTaban){ const na = noTaban(a), nb = noTaban(b); if (na !== nb) return na ? 1 : -1; }
     if (small){ const sa = small(a), sb = small(b); if (sa !== sb) return sa ? 1 : -1; }
     let av = a[sortKey], bv = b[sortKey];
     let primary;
@@ -1398,33 +1568,69 @@ function cmpTip(r, c){
   const satir = [];
   if (c.key === 'r_kk'){
     const y = (k, n, kk) => (k === null || k === undefined || !n) ? '—' : `Kayıt Olan ${fmtNum(k)} ÷ Kontenjan ${fmtNum(n)} = ${fmtRatio(kk)}`;
-    satir.push(`Doluluk (Kayıt Olan ÷ Kontenjan)`, `2026: ${y(r.kayitOlan, r.kontenjan, r.r_kk)}`, `2025: ${y(r.kayitOlan_p, r.kontenjan_p, r.r_kk_p)}`);
+    satir.push(`Doluluk (Kayıt Olan ÷ Kontenjan)`, `${CB}: ${y(r.kayitOlan, r.kontenjan, r.r_kk)}`);
+    if (CM) satir.push(`${CM}: ${y(r.kayitOlan_m, r.kontenjan_m, r.r_kk_m)}`);
+    satir.push(`${CA}: ${y(r.kayitOlan_p, r.kontenjan_p, r.r_kk_p)}`);
   } else {
-    satir.push(`${ad}`, `2026: ${f(cur)}`, `2025: ${f(prev)}`);
+    satir.push(`${ad}`, `${CB}: ${f(cur)}`);
+    if (CM) satir.push(`${CM}: ${f(r[c.key + '_m'])}`);
+    satir.push(`${CA}: ${f(prev)}`);
   }
-  if (d !== null && d !== undefined) satir.push(`Fark (2026 − 2025): ${fmtDelta(d, c.fmt)}`);
+  if (d !== null && d !== undefined) satir.push(`Fark (${CB} − ${CA}): ${fmtDelta(d, c.fmt)}`);
+  if (CM){
+    const m = r[c.key + '_m'];
+    if (m != null && prev != null) satir.push(`${CA} → ${CM}: ${fmtDelta(m - prev, c.fmt)}`);
+    if (m != null && cur != null) satir.push(`${CM} → ${CB}: ${fmtDelta(cur - m, c.fmt)}`);
+    satir.push(`Gidişat aynı program kodlarıyla izlenir; kodu değişen programlarda ${CM} değeri eksik kalabilir.`);
+  }
   if (c.key === 'progCount') satir.push('Bu satırda toplanan program sayısı (burs seçenekleri birleştirilmiş).');
   if (c.key === 'uniCount') satir.push('Bu programın bulunduğu üniversite sayısı.');
   if (c.key === 'enk' && r.prog === undefined) satir.push('İldeki programların taban puan farklarının ortalaması.');
-  if (r.durum === 'Kapanan') satir.push('Bu satır 2026\'da kapanan programları gösterir; 2026 değeri olmadığı için "—" yazar.');
-  else if (r.durum === 'Yeni') satir.push('Bu satır 2026\'da yeni açılan programları gösterir; 2025 değeri yoktur.');
+  if (r.durum === 'Kapanan') satir.push(`Bu satır ${deY(CB)} kapanan programları gösterir; ${CB} değeri olmadığı için "—" yazar.`);
+  else if (r.durum === 'Yeni') satir.push(`Bu satır ${CA}'ten sonra açılan programları gösterir; ${CA} değeri yoktur.`);
   else if (r.durumTip) satir.push(`${r.durum}: ${r.durumTip}`);
-  else if (r._c === true && r._p === false) satir.push('Bu satırdaki programların hepsi 2026\'da yeni açılmıştır.');
-  else if (r._c === false && r._p === true) satir.push('Bu satırdaki programların hepsi 2026\'da kapanmıştır.');
+  else if (r._c === true && r._p === false) satir.push(`Bu satırdaki programların hepsi ${CA}'ten sonra açılmıştır.`);
+  else if (r._c === false && r._p === true) satir.push(`Bu satırdaki programların hepsi ${deY(CB)} kapanmıştır.`);
   return satir.join('\n');
+}
+// 3 yıllık mini çizgi grafik (CA → CM → CB); eksik yıl atlanır. Renk: son değerin ilk değere göre yönü
+function sparkSvg(vals, cls){
+  const pts = vals.map((v, i) => [i, v]).filter(p => p[1] != null && isFinite(p[1]));
+  if (pts.length < 2) return '';
+  const W = 30, H = 11, lo = Math.min(...pts.map(p => p[1])), hi = Math.max(...pts.map(p => p[1]));
+  const x = (i) => (i / 2) * W, y = (v) => hi === lo ? H / 2 : H - ((v - lo) / (hi - lo)) * H;
+  const col = cls === 'up' ? 'var(--good)' : cls === 'down' ? 'var(--bad)' : 'var(--ink-soft)';
+  return `<svg class="spk" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" aria-hidden="true">` +
+    `<polyline points="${pts.map(p => `${x(p[0]).toFixed(1)},${y(p[1]).toFixed(1)}`).join(' ')}" fill="none" stroke="${col}" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/>` +
+    pts.map(p => `<circle cx="${x(p[0]).toFixed(1)}" cy="${y(p[1]).toFixed(1)}" r="1.6" fill="${col}"/>`).join('') + '</svg>';
+}
+// Gidişat hücresi: büyük rakam CB; altında mini grafik + CA'ya göre fark; en altta CA · CM değerleri
+function trendCell(r, c){
+  const cur = r[c.key], prev = r[c.key + '_p'], mid = r[c.key + '_m'], d = r[c.key + '_d'];
+  const curTxt = (cur == null) ? '—' : fmtKind(cur, c.fmt);
+  const eps = c.fmt === 'num' ? 0 : 0.0005;
+  let cls = 'flat', dTxt = '';
+  if (d != null && Math.abs(d) > eps){
+    const up = d > 0; cls = c.good === 0 ? 'neu' : ((up ? 1 : -1) * c.good > 0 ? 'up' : 'down');
+    dTxt = `${up ? '▲' : '▼'} ${fmtDelta(d, c.fmt)}`;
+  } else if (d != null) dTxt = '=';
+  const k = (v) => v == null ? '—' : fmtKind(v, c.fmt);
+  return `<span class="cv">${curTxt}</span><span class="cd ${cls}">${sparkSvg([prev, mid, cur], cls)}${dTxt}</span>` +
+    `<span class="cd3">${yy(CA)}: ${k(prev)} · ${yy(CM)}: ${k(mid)}</span>`;
 }
 // Karşılaştırma hücresi: büyük rakam 2026, altında ▲/▼ fark ve 2025 değeri
 function cmpCell(r, c){
+  if (CM) return trendCell(r, c);
   const cur = r[c.key], prev = r[c.key + '_p'], d = r[c.key + '_d'];
   const curTxt = (cur===null || cur===undefined) ? '—' : fmtKind(cur, c.fmt);
   let line = '';
   if (prev!==null && prev!==undefined){
     const eps = c.fmt==='num' ? 0 : 0.0005;
-    if (d===null || d===undefined) line = `<span class="cd flat"><span class="cp">2025: ${fmtKind(prev, c.fmt)}</span></span>`;
-    else if (Math.abs(d) <= eps) line = `<span class="cd flat">= <span class="cp">2025: ${fmtKind(prev, c.fmt)}</span></span>`;
+    if (d===null || d===undefined) line = `<span class="cd flat"><span class="cp">${CA}: ${fmtKind(prev, c.fmt)}</span></span>`;
+    else if (Math.abs(d) <= eps) line = `<span class="cd flat">= <span class="cp">${CA}: ${fmtKind(prev, c.fmt)}</span></span>`;
     else {
       const up = d > 0, cls = c.good===0 ? 'neu' : ((up ? 1 : -1) * c.good > 0 ? 'up' : 'down');
-      line = `<span class="cd ${cls}">${up ? '▲' : '▼'} ${fmtDelta(d, c.fmt)} <span class="cp">· 2025: ${fmtKind(prev, c.fmt)}</span></span>`;
+      line = `<span class="cd ${cls}">${up ? '▲' : '▼'} ${fmtDelta(d, c.fmt)} <span class="cp">· ${CA}: ${fmtKind(prev, c.fmt)}</span></span>`;
     }
   }
   return `<span class="cv">${curTxt}</span>${line}`;
@@ -1459,28 +1665,95 @@ function renderThead(cols){
   }).join('');
 }
 function renderStatsCmp(){
-  let c = {n:0, k:0, y:0, e:0, ko:0}, p = {n:0, k:0, y:0, e:0, ko:0};
+  let c = {n:0, k:0, y:0, e:0, ko:0}, p = {n:0, k:0, y:0, e:0, ko:0}, m = {n:0, k:0, y:0, e:0, ko:0};
   for (const r of cmpProgram){
     if (r.durum !== 'Kapanan'){ c.n++; c.k += r.kontenjan||0; c.y += r.yerlesen||0; c.e += r.ek||0; c.ko += r.kayitOlan||0; }
     if (r.durum !== 'Yeni'){ p.k += r.kontenjan_p||0; p.y += r.yerlesen_p||0; p.e += r.ek_p||0; p.ko += r.kayitOlan_p||0; }
+    if (CM && r._hm){ m.n++; m.k += r.kontenjan_m||0; m.y += r.yerlesen_m||0; m.e += r.ek_m||0; m.ko += r.kayitOlan_m||0; }
   }
-  // 2025 program sayısı, 2025 görünümüyle aynı olsun diye 2025'in kendi satırlarından gruplanır
+  // Önceki yılın program sayısı, o yılın görünümüyle aynı olsun diye kendi satırlarından gruplanır
   p.n = buildProgramGrouped(cmpProgram.flatMap(r => r._prev || [])).length;
-  const sub = (a, b, good) => {
-    const d = a - b; if (!d) return `<span class="sub">2025: ${fmtNum(b)} · değişim yok</span>`;
+  const sub = (a, b, good, mv) => {
+    const d = a - b;
+    const mid = CM ? `<span class="y3">${CA}: ${fmtNum(b)} → ${CM}: ${fmtNum(mv)}</span>` : `${CA}: ${fmtNum(b)} · `;
+    if (!d) return `<span class="sub">${mid}${CM ? '' : 'değişim yok'}${CM ? `<b>${CA}'e göre değişim yok</b>` : ''}</span>`;
     const cls = good===0 ? '' : ((d > 0 ? 1 : -1) * good > 0 ? 'up' : 'down');
-    return `<span class="sub">2025: ${fmtNum(b)} · <b class="${cls}">${d > 0 ? '▲' : '▼'} ${fmtDelta(d, 'num')}</b></span>`;
+    return `<span class="sub">${mid}<b class="${cls}">${d > 0 ? '▲' : '▼'} ${fmtDelta(d, 'num')}${CM ? ` (${CA} → ${CB})` : ''}</b></span>`;
   };
   const stats = [
-    {num:fmtNum(c.n), lbl:'Program Sayısı (2026)', sub:sub(c.n, p.n, 0)},
-    {num:fmtNum(c.k), lbl:'Toplam Kontenjan (İlk)', sub:sub(c.k, p.k, 0)},
-    {num:fmtNum(c.y), lbl:'Toplam Yerleşen (İlk)', sub:sub(c.y, p.y, 1)},
-    {num:fmtNum(c.e), lbl:'Toplam Eke Kalan', sub:sub(c.e, p.e, -1), hi:true},
-    {num:fmtNum(c.ko), lbl:'Toplam Kayıt Olan (Hes.)', sub:sub(c.ko, p.ko, 1), hi:true},
+    {num:fmtNum(c.n), lbl:`Program Sayısı (${CB})`, sub:sub(c.n, p.n, 0, m.n)},
+    {num:fmtNum(c.k), lbl:'Toplam Kontenjan (İlk)', sub:sub(c.k, p.k, 0, m.k)},
+    {num:fmtNum(c.y), lbl:'Toplam Yerleşen (İlk)', sub:sub(c.y, p.y, 1, m.y)},
+    {num:fmtNum(c.e), lbl:'Toplam Eke Kalan', sub:sub(c.e, p.e, -1, m.e), hi:true},
+    {num:fmtNum(c.ko), lbl:'Toplam Kayıt Olan (Hes.)', sub:sub(c.ko, p.ko, 1, m.ko), hi:true},
   ];
   elStats.innerHTML = stats.map(s=>`<div class="stat${s.hi?' hi':''}"><span class="num">${s.num}</span><span class="lbl">${s.lbl}</span>${s.sub}</div>`).join('');
 }
+// Taban / Tavan özetleri: puan türleri birbiriyle kıyaslanamadığı için her puan türü ayrı satır.
+// Ortalamalar program kodu başına (ağırlıksız); yerleşeni olmayan (taban puanı "—") programlar dahil edilmez.
+const elPuanStats = document.getElementById('puan-stats');
+const PUAN_SIRA = ['SAY','EA','SÖZ','DİL','TYT'];
+function renderPuanStats(){
+  const on = effectiveView() === 'puan';
+  elPuanStats.hidden = !on;
+  if (!on){ elPuanStats.innerHTML = ''; return; }
+  const cmp = isCmp(), P = (v) => v == null ? '—' : v.toLocaleString('tr-TR', {minimumFractionDigits:1, maximumFractionDigits:1});
+  const avg = (a) => a.length ? a.reduce((s, x) => s + x, 0) / a.length : null;
+  const byPuan = new Map(), byBurs = new Map();
+  for (const r of puanRows){
+    if (r.enk == null) continue;
+    if (!byPuan.has(r.puan)) byPuan.set(r.puan, []); byPuan.get(r.puan).push(r);
+    const bk = r.burs + '|' + r.puan; if (!byBurs.has(bk)) byBurs.set(bk, []); byBurs.get(bk).push(r);
+  }
+  const puanlar = Array.from(byPuan.keys()).sort((a, b) => (PUAN_SIRA.indexOf(a) + 1 || 99) - (PUAN_SIRA.indexOf(b) + 1 || 99) || a.localeCompare(b, 'tr'));
+  const bos = puanRows.filter(r => r.enk == null).length;
+  // Başlık ve hücre açıklamaları (üzerine gelince)
+  const TH = (lbl, tip) => `<th title="${escapeAttr(tip)}">${lbl}</th>`;
+  const TD = (val, tip, cls) => `<td${cls ? ` class="${cls}"` : ''} title="${escapeAttr(tip)}">${val}</td>`;
+  const ad = (r) => `${r.uni} — ${r.prog}`;
+  let h1 = `<div class="ps-box"><h4>Puan türüne göre taban / tavan${cmp ? ` (${CB}; ${CA} ile aynı program kodu)` : ''}</h4><table><thead><tr>` +
+    TH('Puan Türü', 'Programın öğrenci aldığı puan türü. Farklı puan türlerinin puanları birbiriyle kıyaslanamaz; bu yüzden her biri ayrı satırda.') +
+    TH('Program', 'Taban puanı oluşan (en az bir yerleşeni olan) program kodu sayısı. Burslu / %50 / %25 / Ücretli seçenekleri ayrı sayılır.') +
+    TH('Ort. Taban', 'Ortalama taban puan: programların Genel Kontenjan en küçük puanlarının ortalaması (program başına, ağırlıksız).') +
+    TH('Ort. Tavan', 'Ortalama tavan puan: programların Genel Kontenjan en büyük puanlarının ortalaması.') +
+    TH('Ort. Makas', 'Ortalama puan makası: her programda (tavan − taban) farkının ortalaması. Küçükse programlar birbirine yakın puanlı adaylarla dolmuş demektir.') +
+    TH('En Yüksek Taban', 'Bu puan türündeki en yüksek taban puan (en zor girilen program). Hücrenin üzerine gelince program görünür.') +
+    TH('En Düşük Taban', 'Bu puan türündeki en düşük taban puan (en kolay girilen program). Hücrenin üzerine gelince program görünür.');
+  if (cmp) h1 += TH('Taban ▲', `Taban puanı ${CA}'e göre YÜKSELEN program sayısı (aynı program kodu iki yılda da varsa).`) +
+    TH('Taban ▼', `Taban puanı ${CA}'e göre DÜŞEN program sayısı.`) +
+    TH('Ort. Değişim', `Taban puan değişiminin ortalaması (${CB} taban − ${CA} taban). Artı: programlara girmek zorlaştı; eksi: kolaylaştı.`);
+  h1 += '</tr></thead><tbody>';
+  for (const p of puanlar){
+    const a = byPuan.get(p), t = a.map(r => r.enk);
+    const mx = a.reduce((m, r) => r.enk > m.enk ? r : m), mn = a.reduce((m, r) => r.enk < m.enk ? r : m);
+    const oT = avg(t), oV = avg(a.filter(r => r.enb != null).map(r => r.enb)), oM = avg(a.filter(r => r.makas != null).map(r => r.makas));
+    h1 += '<tr>' + TD(escapeHtml(p), `${p} puan türü`) + TD(fmtNum(a.length), `${fmtNum(a.length)} program (${p}) taban puanı olan`) +
+      TD(P(oT), `${fmtNum(a.length)} programın taban puanı ortalaması = ${P(oT)}`) +
+      TD(P(oV), `Tavan puanların ortalaması = ${P(oV)}`) +
+      TD(P(oM), `Ortalama (tavan − taban) = ${P(oV)} − ${P(oT)} ≈ ${P(oM)}`) +
+      TD(P(mx.enk), `En yüksek taban: ${ad(mx)} · ${fmtPuan(mx.enk)}`) +
+      TD(P(mn.enk), `En düşük taban: ${ad(mn)} · ${fmtPuan(mn.enk)}`);
+    if (cmp){
+      const d = a.map(r => r.enk_d).filter(x => x != null), md = avg(d);
+      const up = d.filter(x => x > 0).length, dn = d.filter(x => x < 0).length;
+      h1 += TD(fmtNum(up), `${fmtNum(d.length)} eşleşen programın ${fmtNum(up)} tanesinde taban puan ${CA}'e göre yükseldi`, 'up') +
+        TD(fmtNum(dn), `${fmtNum(d.length)} eşleşen programın ${fmtNum(dn)} tanesinde taban puan ${CA}'e göre düştü` + (d.length - up - dn ? ` (${fmtNum(d.length - up - dn)} programda değişmedi)` : ''), 'down') +
+        TD(md == null ? '—' : fmtDelta(md, 'puan'), md == null ? 'Eşleşen program yok' : `${fmtNum(d.length)} programda (${CB} taban − ${CA} taban) ortalaması = ${fmtDelta(md, 'puan')} puan`, md > 0 ? 'up' : md < 0 ? 'down' : '');
+    }
+    h1 += '</tr>';
+  }
+  h1 += `</tbody></table><p>Yalnızca Genel Kontenjan. Taban = ilk ve ek yerleştirme en küçük puanlarından düşük olanı, Tavan = en büyük puanlarından büyük olanı (ek yerleştirmeye kontenjan kalmadıysa ilk yerleştirme puanı). Ortalamalar program kodu başına, ağırlıksızdır.${bos ? ` İlk ve ek yerleştirmede yerleşeni olmadığı için taban puanı oluşmayan ${fmtNum(bos)} program hesaba katılmadı.` : ''}</p></div>`;
+  // Burs türü × puan türü ortalama taban
+  const bursList = BURS_ORDER.filter(b => puanlar.some(p => byBurs.has(b + '|' + p)));
+  let h2 = `<div class="ps-box"><h4>Burs türüne göre ortalama taban puan</h4><table><thead><tr>${TH('Burs Türü', 'Vakıf üniversitelerinde Burslu / %50 / %25 / Ücretli; devlet ve KKTC programları "Belirtilmemiş" satırında.')}${puanlar.map(p => TH(escapeHtml(p), `${p} puan türündeki programların ortalama taban puanı`)).join('')}</tr></thead><tbody>`;
+  for (const b of bursList){
+    h2 += `<tr><td>${escapeHtml(b)}</td>` + puanlar.map(p => { const a = byBurs.get(b + '|' + p); return a ? TD(P(avg(a.map(r => r.enk))), `${b} · ${p}: ${fmtNum(a.length)} programın taban puan ortalaması`) : TD('—', `${b} · ${p}: program yok`); }).join('') + '</tr>';
+  }
+  h2 += '</tbody></table><p>Hücre üzerine gelince program sayısı görünür. Filtreler (şehir, üniversite türü, üniversite vb.) bu tabloları da değiştirir.</p></div>';
+  elPuanStats.innerHTML = h1 + h2;
+}
 function renderStats(){
+  renderPuanStats();
   if (isCmp()) return renderStatsCmp();
   let sumK=0,sumY=0,sumEk=0,sumKO=0;
   for (const r of filtered){
@@ -1508,8 +1781,8 @@ function renderTable(){
   const cols = currentColumns();
   const data = currentDataArray();
   const ev = effectiveView();
-  elTable.classList.remove('view-university','view-program','view-programtotals','view-city');
-  elTable.classList.add(ev==='university' ? 'view-university' : ev==='programTotals' ? 'view-programtotals' : ev==='city' ? 'view-city' : 'view-program');
+  elTable.classList.remove('view-university','view-program','view-programtotals','view-city','view-puan');
+  elTable.classList.add(ev==='university' ? 'view-university' : ev==='programTotals' ? 'view-programtotals' : ev==='city' ? 'view-city' : ev==='puan' ? 'view-puan' : 'view-program');
   sortArray(data, cols);
   if (ev === 'city') return renderCityTable(cols, data);
   const ps = effectivePageSize();
@@ -1526,8 +1799,11 @@ function renderTable(){
   let mascotShown = false;
   elTbody.innerHTML = pageRows.map((r,i)=>{
     const isUskudar = !isCmp() && ev==='university' && r.uni === HIGHLIGHT_UNI;
-    const trCls = r.uni === HIGHLIGHT_UNI ? ' class="highlight"' : '';
-    const rowNum = `<td class="num kod">${start+i+1}</td>`;
+    // Karşılaştırma / gidişatta satıra tıklayınca altında yıl yıl grafik paneli açılır
+    const dk = isCmp() ? detailKey(r) : null, dOpen = dk !== null && dk === openDetail;
+    const clsList = [r.uni === HIGHLIGHT_UNI ? 'highlight' : '', dk !== null ? 'cmp-row' : '', dOpen ? 'open' : ''].filter(Boolean).join(' ');
+    const trCls = (clsList ? ` class="${clsList}"` : '') + (dk !== null ? ` data-dk="${escapeAttr(dk)}" tabindex="0" aria-expanded="${dOpen}" title="Tıklayınca yıl yıl grafik açılır"` : '');
+    const rowNum = `<td class="num kod">${dk !== null ? `<span class="cx" aria-hidden="true">${dOpen ? '▾' : '▸'}</span>` : ''}${start+i+1}</td>`;
     let hasAbove = false, hasBelow = false;
     if (isUskudar){
       mascotShown = true;
@@ -1538,6 +1814,7 @@ function renderTable(){
     return `<tr${trCls}>` + rowNum + cols.map(c=>{
       if (c.key==='kod') return `<td class="kod">${escapeHtml(r.kod)}</td>`;
       if (c.durum) return `<td>${durumBadge(r)}</td>`;
+      if (ev === 'puan' && (c.key === 'enk' || c.key === 'enb')) return puanCell(r, c);
       if (c.cmp) return `<td class="num has-frac" title="${escapeAttr(cmpTip(r, c))}">${cmpCell(r, c)}</td>`;
       const cls = (c.num?'num ':'') + (c.cellCls||'');
       if (isUskudar && c.key==='uni'){
@@ -1549,10 +1826,159 @@ function renderTable(){
         return `<td class="${cls} has-frac" title="${escapeAttr(tip)}">${fmtCell(r[c.key], c)}</td>`;
       }
       return `<td class="${cls}">${fmtCell(r[c.key], c)}</td>`;
-    }).join('') + '</tr>';
+    }).join('') + '</tr>' + (dOpen ? detailRowHtml(r, cols) : '');
   }).join('');
+  sizeDetailPanel();
   const elMascotLegend = document.getElementById('mascot-legend');
   if (elMascotLegend) elMascotLegend.hidden = !mascotShown;
+}
+
+/* -------------------- Yıl yıl grafik paneli (karşılaştırma / 3 yıllık gidişat) --------------------
+   Satıra tıklayınca altında, tablodaki her karşılaştırma sütunu için küçük bir çizgi grafik açılır
+   (her kart tek ölçü, kendi ekseni: farklı birimler aynı eksende gösterilmez). */
+let openDetail = null;
+const detailKey = (r) => [r.kod, r.uniT, r.uni, r.seviye, r.prog, r.puan, r.sehir].map(x => x == null ? '' : x).join('¦');
+function detailRowHtml(r, cols){
+  const years = CM ? [CA, CM, CB] : [CA, CB];
+  const ad = r.prog ? (r.uni ? `${r.uni} — ${r.prog}` : r.prog) : (r.uni || r.sehir || '');
+  const cmpCols = cols.filter(c => c.cmp);
+  const cards = cmpCols.map(c => detailCard(r, c, years)).join('');
+  return `<tr class="cmp-detail"><td colspan="${cols.length + 1}"><div class="cmp-detail-in sans">` +
+    `<div class="cd-head"><h5>${escapeHtml(ad)} <span>· ${years.join(' → ')}</span></h5>` +
+    `<button type="button" class="cd-close" data-close="1" aria-label="Grafiği kapat">✕ Kapat <kbd>Esc</kbd></button></div>` +
+    detailSummary(r, cmpCols, years) +
+    `<div class="cd-grid">${cards}</div>` +
+    `<p class="cd-foot">ⓘ Kart başlığının üzerine gelince göstergenin ne anlama geldiği, noktaların üzerine gelince o yılın ayrıntısı görünür. Her kartın kendi ölçeği vardır; çizgilerin eğimini kartlar arasında kıyaslamayın. Programlar yıllar arasında program koduyla eşleştirilir.</p>` +
+    `</div></td></tr>`;
+}
+// Göstergelerin düz Türkçe açıklaması (kart başlığında ⓘ)
+const DETAIL_INFO = {
+  progCount:'Bu satırdaki program sayısı (burs seçenekleri birleştirilmiş).',
+  uniCount:'Programın bulunduğu üniversite sayısı.',
+  kontenjan:'İlk yerleştirmede ilan edilen Genel Kontenjan (öğrenci alınacak yer sayısı).',
+  yerlesen:'İlk yerleştirmede bu programlara yerleşen aday sayısı.',
+  kayitOlan:'Dolu kontenjan: Kontenjan − ek yerleştirmeye kalan yer. Yaklaşık kayıt yaptıran öğrenci sayısı.',
+  r_kk:'Doluluk: kontenjanın yüzde kaçı doldu (Kayıt Olan ÷ Kontenjan). Yüksek olması iyidir.',
+  ek:'Boş kalan yer: ilk yerleştirmeden sonra ek yerleştirmeye kalan kontenjan. Düşük olması iyidir.',
+  ekYer:'Ek yerleştirmede bu boş yerlere yerleşen aday sayısı.',
+  enk:'Taban puan: programa yerleşen en düşük puan (ilk ve ek yerleştirmeden düşük olan). Yükselmesi talebin arttığını gösterir.',
+  enb:'Tavan puan: programa yerleşen en yüksek puan.',
+  makas:'Puan makası: tavan − taban. Küçükse program birbirine yakın puanlı adaylarla dolmuştur.',
+};
+const DETAIL_ADLAR = {progCount:'Program sayısı', uniCount:'Üniversite sayısı', kontenjan:'Kontenjan', yerlesen:'Yerleşen', kayitOlan:'Dolu kontenjan',
+  r_kk:'Doluluk', ek:'Boş kalan yer', ekYer:'Ek yerleşen', enk:'Taban puan', enb:'Tavan puan', makas:'Puan makası'};
+// Gidişatın şekli: sürekli arttı / düştü, önce … sonra …
+function gidisatSozu(vals){
+  const v = vals.filter(x => x != null && isFinite(x));
+  if (v.length < 2) return null;
+  const yon = (a, b) => b > a ? 1 : b < a ? -1 : 0;
+  if (v.length === 2){ const y = yon(v[0], v[1]); return y > 0 ? 'arttı' : y < 0 ? 'azaldı' : 'değişmedi'; }
+  const a = yon(v[0], v[1]), b = yon(v[1], v[2]);
+  if (a >= 0 && b >= 0 && (a || b)) return 'sürekli arttı';
+  if (a <= 0 && b <= 0 && (a || b)) return 'sürekli azaldı';
+  if (a > 0 && b < 0) return 'önce arttı, sonra azaldı';
+  if (a < 0 && b > 0) return 'önce azaldı, sonra arttı';
+  return 'değişmedi';
+}
+const pctTxt = (d, base) => base ? '%' + Math.abs(d / base * 100).toLocaleString('tr-TR', {maximumFractionDigits:1}) : '';
+// Panel üstü: en önemli 4 göstergenin tek cümlelik özeti
+function detailSummary(r, cmpCols, years){
+  const sira = ['kontenjan', 'kayitOlan', 'r_kk', 'ek', 'enk', 'enb'];
+  const sec = sira.map(k => cmpCols.find(c => c.key === k)).filter(Boolean).slice(0, 4);
+  const items = sec.map(c => {
+    const vals = CM ? [r[c.key + '_p'], r[c.key + '_m'], r[c.key]] : [r[c.key + '_p'], r[c.key]];
+    const soz = gidisatSozu(vals); if (!soz) return '';
+    const first = vals[0], last = vals[vals.length - 1], d = last - first;
+    const cls = !d || c.good === 0 ? 'flat' : ((d > 0 ? 1 : -1) * c.good > 0 ? 'up' : 'down');
+    const ic = !d ? '＝' : d > 0 ? '▲' : '▼';
+    const mik = !d ? '' : c.fmt === 'num' ? ` (${fmtDelta(d, 'num')}, ${pctTxt(d, first)})` : ` (${fmtDelta(d, c.fmt).replace(' p', '')} puan)`;
+    return `<li class="${cls}"><b>${ic}</b> <span><b>${DETAIL_ADLAR[c.key] || c.label}</b> ${soz}${mik}: ` +
+      `${vals.map(v => v == null ? '—' : fmtKind(v, c.fmt)).join(' → ')}</span></li>`;
+  }).filter(Boolean);
+  return items.length ? `<ul class="cd-sum">${items.join('')}</ul>` : '';
+}
+function detailCard(r, c, years){
+  const vals = CM ? [r[c.key + '_p'], r[c.key + '_m'], r[c.key]] : [r[c.key + '_p'], r[c.key]];
+  const last = vals[vals.length - 1], first = vals[0];
+  const k = (v) => v == null ? '—' : fmtKind(v, c.fmt);
+  // Fark: son yıl − ilk yıl; renk göstergenin yönüne göre (nötr göstergelerde gri)
+  let dl = '<span class="dl flat">karşılaştırma yok</span>';
+  if (first != null && last != null){
+    const d = last - first, eps = c.fmt === 'num' ? 0 : 0.0005;
+    if (Math.abs(d) <= eps) dl = `<span class="dl flat">= değişim yok (${years[0]}'e göre)</span>`;
+    else { const up = d > 0, cls = c.good === 0 ? 'flat' : ((up ? 1 : -1) * c.good > 0 ? 'up' : 'down');
+      const pct = c.fmt === 'num' && first ? ` · ${pctTxt(d, first)}` : '';
+      dl = `<span class="dl ${cls}">${up ? '▲' : '▼'} ${fmtDelta(d, c.fmt)}${pct} <span class="dl-s">(${years[0]}'e göre)</span></span>`; }
+  }
+  // Çizgi grafik: 3 (ya da 2) nokta, değer etiketleri noktaların üstünde, yıllar altta
+  const W = 200, H = 100, L = 24, R = 24, T = 22, B = 22;   // kart genişliğine yakın: yazılar küçülmesin
+  const pts = vals.map((v, i) => ({i, v})).filter(p => p.v != null && isFinite(p.v));
+  const xs = (i) => L + (vals.length === 1 ? 0 : i * (W - L - R) / (vals.length - 1));
+  let lo = Math.min(...pts.map(p => p.v)), hi = Math.max(...pts.map(p => p.v));
+  if (!pts.length){ lo = 0; hi = 1; }
+  if (hi === lo){ const pad = Math.abs(hi) * 0.1 || 1; lo -= pad; hi += pad; }
+  const ys = (v) => T + (H - T - B) * (1 - (v - lo) / (hi - lo));
+  let svg = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${escapeAttr(c.label)}: ${years.map((y, i) => `${y} ${k(vals[i])}`).join(', ')}">`;
+  svg += `<line class="cd-base" x1="${L - 10}" x2="${W - R + 10}" y1="${H - B + 4}" y2="${H - B + 4}"/>`;
+  if (pts.length > 1) svg += `<polyline class="cd-line" points="${pts.map(p => `${xs(p.i).toFixed(1)},${ys(p.v).toFixed(1)}`).join(' ')}"/>`;
+  vals.forEach((v, i) => {
+    const x = xs(i), isLast = i === vals.length - 1;
+    svg += `<text class="cd-yr" x="${x}" y="${H - 4}" text-anchor="middle">${years[i]}</text>`;
+    if (v == null || !isFinite(v)){ svg += `<text class="cd-na" x="${x}" y="${(T + H - B) / 2}" text-anchor="middle">veri yok</text>`; return; }
+    const y = ys(v);
+    let tip = `${c.label} · ${years[i]}: ${k(v)}`;
+    if (i > 0 && vals[i - 1] != null) tip += `\n${years[i - 1]} → ${years[i]}: ${fmtDelta(v - vals[i - 1], c.fmt)}`;
+    if (c.key === 'r_kk'){ const s = i === vals.length - 1 ? '' : (CM && i === 1 ? '_m' : '_p'); if (r['kayitOlan' + s] != null && r['kontenjan' + s]) tip += `\nKayıt Olan ${fmtNum(r['kayitOlan' + s])} ÷ Kontenjan ${fmtNum(r['kontenjan' + s])}`; }
+    svg += `<g class="cd-pt"><title>${escapeHtml(tip)}</title><circle class="cd-hit" cx="${x}" cy="${y}" r="13"/>` +
+      `<circle class="cd-dot${isLast ? ' last' : ''}" cx="${x}" cy="${y}" r="${isLast ? 5 : 4}"/>` +
+      `<text class="cd-val${isLast ? ' last' : ''}" x="${x}" y="${(y - 9).toFixed(1)}" text-anchor="middle">${k(v)}</text></g>`;
+  });
+  svg += '</svg>';
+  const info = DETAIL_INFO[c.key];
+  return `<div class="cd-card"><div class="cd-k"${info ? ` title="${escapeAttr(info)}"` : ''}>${escapeHtml(DETAIL_ADLAR[c.key] || c.label)}${info ? ' <i class="cd-i" aria-hidden="true">ⓘ</i>' : ''}</div><div class="cd-v">${k(last)}</div>${dl}${svg}</div>`;
+}
+// Panel tablo yatay kaydırılsa da görünür alanda kalsın
+function sizeDetailPanel(){
+  const inner = elTbody.querySelector('.cmp-detail-in'); if (!inner) return;
+  inner.style.width = Math.max(280, elTable.parentElement.clientWidth - 34) + 'px';
+}
+window.addEventListener('resize', sizeDetailPanel);
+function toggleDetail(tr){
+  const k = tr.dataset.dk; openDetail = openDetail === k ? null : k;
+  renderTable();
+  const again = Array.from(elTbody.querySelectorAll('tr.cmp-row')).find(x => x.dataset.dk === k);
+  if (again) again.focus({preventScroll:true});
+  // Açılan panel ekranın dışında kalıyorsa yumuşakça görünür alana getir
+  const p = elTbody.querySelector('tr.cmp-detail');
+  if (p) p.scrollIntoView({block:'nearest', behavior:matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth'});
+}
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && openDetail !== null){ openDetail = null; renderTable(); } });
+elTbody.addEventListener('click', (e) => {
+  if (e.target.closest('[data-close]')){ openDetail = null; renderTable(); return; }
+  if (e.target.closest('tr.cmp-detail')) return;
+  const tr = e.target.closest('tr.cmp-row'); if (tr) toggleDetail(tr);
+});
+elTbody.addEventListener('keydown', (e) => {
+  const tr = e.target.closest('tr.cmp-row');
+  if (tr && (e.key === 'Enter' || e.key === ' ')){ e.preventDefault(); toggleDetail(tr); }
+});
+
+// Taban / Tavan hücresi: ilk + ek yerleştirme birleşik puan; ek yerleştirmeden gelen değer "ek" ile işaretlenir
+function puanCell(r, c){
+  const taban = c.key === 'enk', f = (v) => v == null ? '—' : fmtPuan(v);
+  const satir = (o, yil) => {
+    const i = taban ? o.ilkT : o.ilkV, e = taban ? o.ekT : o.ekV, v = o[c.key];
+    const kural = (i != null && e != null) ? (taban ? ' → düşük olan alındı' : ' → büyük olan alındı') : (i == null && e != null) ? ' → ilk yerleştirmede oluşmadı, ek alındı' : '';
+    return `${yil ? yil + ' ' : ''}${taban ? 'Taban' : 'Tavan'}: ${f(v)}  (ilk yerleştirme ${f(i)} · ek yerleştirme ${f(e)}${kural})`;
+  };
+  const lines = [isCmp() ? satir(r, CB) : satir(r, '')];
+  if (isCmp() && r._qm) lines.push(satir(r._qm, CM));
+  if (isCmp() && r._q) lines.push(satir(r._q, CA));
+  if (isCmp() && r[c.key + '_d'] != null) lines.push(`Fark (${CB} − ${CA}): ${fmtDelta(r[c.key + '_d'], 'puan')}`);
+  lines.push('Yalnızca Genel Kontenjan. Taban = ilk ve ek yerleştirmeden düşük olan, Tavan = büyük olan; ek yerleştirmeye kontenjan kalmadıysa ilk yerleştirme puanı.');
+  const mark = r[c.key + 'Ek'] ? '<sup class="ekm">ek</sup>' : '';
+  const body = c.cmp ? cmpCell(r, c).replace('</span>', mark + '</span>') : fmtCell(r[c.key], c) + mark;
+  return `<td class="num has-frac${c.cellCls ? ' ' + c.cellCls : ''}" title="${escapeAttr(lines.join('\n'))}">${body}</td>`;
 }
 
 // Karşılaştırma durum etiketi: Yeni / Kapanan / Aktarım (aynı / yükseltilerek / azaltılarak)
@@ -1565,10 +1991,10 @@ function durumBadge(r){
   return `<span class="st-badge aktarim${cls}" title="${escapeAttr(r.durumTip || '')}">${ic} ${escapeHtml(r.durum)}</span>`;
 }
 
-// 2025 vakıf: Eke Kalan'dan depremzede aktarımı düşülen hücrelerde açıklama
+// 2024-2025 vakıf: Eke Kalan'dan depremzede aktarımı düşülen hücrelerde açıklama
 function ekCell(r, c, cls){
   const tip = `İlan edilen Genel Ek Kontenjan ${fmtNum(r.ekIlan)} − depremzede aktarımı ${fmtNum(r.depAkt)} = ${fmtNum(r.ek)}. ` +
-    `2025'te vakıf üniversitelerinde, ilk yerleştirmede depremzede kontenjanından kayıt yaptıran her aday için ` +
+    `2024 ve 2025'te vakıf üniversitelerinde, ilk yerleştirmede depremzede kontenjanından kayıt yaptıran her aday için ` +
     `YÖK ek yerleştirmede programın en düşük burs türüne +1 genel kontenjan eklemiştir; bu koltuklar boşalan yer sayılmaz.`;
   return `<td class="${cls} has-frac" title="${escapeAttr(tip)}">${fmtCell(r.ek, c)}<span style="color:var(--ink-soft);font-weight:400;"> *</span></td>`;
 }
@@ -1658,8 +2084,18 @@ function renderViewNote(){
   if (isCmp()){
     elCmpBar.querySelectorAll('.chip[data-sort]').forEach(b => b.classList.toggle('on', state.sortMode==='fark' && state.sortKey===b.dataset.sort && String(state.sortDir)===b.dataset.dir));
     elCmpBar.querySelectorAll('.chip[data-status]').forEach(b => b.classList.toggle('on', state.cmpStatus===b.dataset.status));
+    if (ev === 'puan'){
+      elViewNote.textContent = (CM
+        ? `Taban / Tavan Puan — 3 yıllık gidişat (${CA} → ${CM} → ${CB}): her satır bir program kodu (burs seçenekleri ayrı). Büyük rakam ${CB}; altında mini grafik, ${CA}'e göre fark ve ${yy(CA)}/${yy(CM)} değerleri (aynı program kodu).`
+        : `Taban / Tavan Puan (${CA} ↔ ${CB}): her satır bir program kodu (burs seçenekleri ayrı). Büyük rakam ${CB}, altında fark ve ${CA} değeri (aynı program kodu).`) + ' Yalnızca Genel Kontenjan; taban = ilk ve ek yerleştirmeden düşük olan, tavan = büyük olan ("ek" işaretli puan ek yerleştirmeden gelir). Taban veya Tavan başlığına tıklayarak sıralayın; hazır sıralamalardaki "Taban puanı en çok yükselen/düşen" farka göre sıralar.';
+      elViewNote.insertAdjacentHTML('beforeend', ' <span class="cmp-hint">▸ Satıra tıklayınca yıl yıl grafik açılır</span>');
+      return;
+    }
     const lvl = ev==='university' ? 'üniversite bazında' : ev==='programTotals' ? 'program adı bazında' : ev==='city' ? 'şehir bazında — şehre tıklayınca üniversiteler açılır' : 'program bazında';
-    elViewNote.textContent = `2025 ↔ 2026 karşılaştırması (${lvl}): her hücrede büyük rakam 2026, altında fark ve 2025 değeri. Programlar program koduyla eşleştirilir. Sütun başlığına tıklayınca değere göre (2026; yoksa 2025), hazır sıralamalarla farka göre sıralanır.`;
+    elViewNote.textContent = CM
+      ? `3 yıllık gidişat ${CA} → ${CM} → ${CB} (${lvl}): her hücrede büyük rakam ${CB}; altında mini grafik ve ${CA}'e göre fark, en altta ${CA} ve ${CM} değerleri. Programlar program koduyla eşleştirilir. Hazır sıralamalar ${CA} → ${CB} farkına göre sıralar.`
+      : `${CA} ↔ ${CB} karşılaştırması (${lvl}): her hücrede büyük rakam ${CB}, altında fark ve ${CA} değeri. Programlar program koduyla eşleştirilir. Sütun başlığına tıklayınca değere göre (${CB}; yoksa ${CA}), hazır sıralamalarla farka göre sıralanır.`;
+    if (ev !== 'city') elViewNote.insertAdjacentHTML('beforeend', ' <span class="cmp-hint">▸ Satıra tıklayınca yıl yıl grafik açılır</span>');
     return;
   }
   if (state.view === 'auto'){
@@ -1671,6 +2107,8 @@ function renderViewNote(){
   } else if (state.view === 'city') {
     const tur = state.uniType ? `${state.uniType} üniversiteleri` : 'tüm üniversite türleri (Üniversite Türü filtresinden Devlet/Vakıf seçebilirsiniz)';
     elViewNote.textContent = `Şehir Toplamları — ${tur}: her şehrin kontenjan, yerleşen, boş kalan (Eke Kalan) ve kayıt olan toplamları. Bir şehre tıklayınca o şehirdeki üniversiteler altında açılır.`;
+  } else if (state.view === 'puan') {
+    elViewNote.textContent = 'Taban / Tavan Puan: her satır bir program kodu (Burslu / %50 / %25 / Ücretli seçenekleri ayrı satırda). Yalnızca Genel Kontenjan; taban = ilk ve ek yerleştirmeden düşük olan, tavan = büyük olan ("ek" işaretli puan ek yerleştirmeden gelir). Varsayılan sıralama tabana göre; Taban, Tavan veya Puan Makası başlığına tıklayarak sıralayabilirsiniz. Yıl kıyaslaması için "Karşılaştır" altından iki yıl ya da "3 Yıllık Gidişat" seçin.';
   } else if (state.view === 'programTotals') {
     elViewNote.textContent = 'Program Toplamları: her satır bir program adını temsil ediyor — o an seçili filtrelere (örn. Üniversite Türü, Şehir) uyan tüm üniversitelerdeki kontenjan/yerleşen/kayıt rakamları o program için toplanmıştır.';
   } else {
@@ -1684,11 +2122,11 @@ function renderUskudarRankNoteCmp(){
     const arr = cmpUni.filter(x => x[key] !== null && x[key] !== undefined).sort((a, b) => b[key] - a[key]);
     const i = arr.indexOf(g); return i === -1 ? null : {rank: i + 1, total: arr.length};
   };
-  const r26 = rankOf('r_kk'), r25 = rankOf('r_kk_p'), d = g.r_kk_d;
+  const r26 = rankOf('r_kk'), r25 = rankOf('r_kk_p'), rm = CM ? rankOf('r_kk_m') : null, d = g.r_kk_d;
   const dTxt = (d === null) ? '' : ` (<b style="color:${d > 0 ? 'var(--good)' : d < 0 ? 'var(--bad)' : 'inherit'}">${d > 0 ? '▲' : d < 0 ? '▼' : '='} ${fmtDelta(d, 'ratio')}</b>)`;
-  const rTxt = (r25 && r26) ? ` · Doluluk sıralaması: 2025'te <b>${r25.rank}.</b> / ${fmtNum(r25.total)} → 2026'da <b>${r26.rank}.</b> / ${fmtNum(r26.total)}` : '';
+  const rTxt = (r25 && r26) ? ` · Doluluk sıralaması: ${CA}'te <b>${r25.rank}.</b> / ${fmtNum(r25.total)}${rm ? ` → ${CM}'te <b>${rm.rank}.</b> / ${fmtNum(rm.total)}` : ''} → ${deY(CB)} <b>${r26.rank}.</b> / ${fmtNum(r26.total)}` : '';
   elUskudarNote.hidden = false;
-  elUskudarNote.innerHTML = `📍 Üsküdar Üniversitesi — Doluluk: 2025 <b>${fmtRatio(g.r_kk_p)}</b> → 2026 <b>${fmtRatio(g.r_kk)}</b>${dTxt}${rTxt}`;
+  elUskudarNote.innerHTML = `📍 Üsküdar Üniversitesi — Doluluk: ${CA} <b>${fmtRatio(g.r_kk_p)}</b>${CM ? ` → ${CM} <b>${fmtRatio(g.r_kk_m)}</b>` : ''} → ${CB} <b>${fmtRatio(g.r_kk)}</b>${dTxt}${rTxt}`;
 }
 function renderUskudarRankNote(){
   if (effectiveView() !== 'university'){
@@ -1726,11 +2164,11 @@ const GREEN7 = ['#eef7ef', '#d2ecd6', '#a9d9b2', '#7bc28d', '#4fa76b', '#2c8650'
 // Haritada gösterilecek ölçü. good: +1 büyük değer olumlu, -1 küçük değer olumlu (renk yönü)
 function mapMetric(){
   if (!isCmp()) return {key:'r_kk', label:'Doluluk (Kayıt Olan / Kontenjan)', fmt:'ratio', good:1};
-  if (state.cmpStatus === 'Yeni') return {key:'kontenjan', label:'Yeni açılan programların kontenjanı (2026)', fmt:'num', good:1, yogunluk:true};
-  if (state.cmpStatus === 'Kapanan') return {key:'kontenjan_p', label:'Kapanan programların kontenjanı (2025)', fmt:'num', good:1, yogunluk:true};
-  if (state.cmpStatus === 'Aktarım') return {key:'kontenjan_d', label:'Aktarımlarda kontenjan değişimi (2025 → 2026)', fmt:'num', good:1, fark:true};
+  if (state.cmpStatus === 'Yeni') return {key:'kontenjan', label:`Yeni açılan programların kontenjanı (${CB})`, fmt:'num', good:1, yogunluk:true};
+  if (state.cmpStatus === 'Kapanan') return {key:'kontenjan_p', label:`Kapanan programların kontenjanı (${CA})`, fmt:'num', good:1, yogunluk:true};
+  if (state.cmpStatus === 'Aktarım') return {key:'kontenjan_d', label:`Aktarımlarda kontenjan değişimi (${CA} → ${CB})`, fmt:'num', good:1, fark:true};
   const m = CMP_METRICS.find(x => x.key === state.sortKey) || CMP_METRICS.find(x => x.key === 'r_kk');
-  return {key:m.key + '_d', label:`${m.key === 'enk' ? 'Ortalama taban puan' : m.label} değişimi (2025 → 2026)`, fmt:m.fmt, good:m.good === 0 ? 1 : m.good, fark:true};
+  return {key:m.key + '_d', label:`${m.key === 'enk' ? 'Ortalama taban puan' : m.label} değişimi (${CA} → ${CB})`, fmt:m.fmt, good:m.good === 0 ? 1 : m.good, fark:true};
 }
 const fmtMetric = (v, mm) => v === null || v === undefined ? '—' : mm.fark ? fmtDelta(v, mm.fmt) : fmtKind(v, mm.fmt);
 const elMap = document.getElementById('tr-map'), elMapTip = document.getElementById('map-tip');
@@ -1829,9 +2267,11 @@ function renderCitySummary(){
   let c, title;
   if (state.sehir && cityAggForPanel.has(state.sehir)){ c = cityAggForPanel.get(state.sehir); title = state.sehir; }
   else {
-    c = {kontenjan:0, yerlesen:0, kayitOlan:0, ek:0, uniCount:0, kontenjan_p:0, yerlesen_p:0, kayitOlan_p:0, ek_p:0, uniCount_p:0};
+    c = {kontenjan:0, yerlesen:0, kayitOlan:0, ek:0, uniCount:0, kontenjan_p:0, yerlesen_p:0, kayitOlan_p:0, ek_p:0, uniCount_p:0,
+         kontenjan_m:0, yerlesen_m:0, kayitOlan_m:0, ek_m:0, uniCount_m:0};
     for (const x of cityAggForPanel.values()) for (const k of Object.keys(c)) c[k] += x[k] || 0;
     c.r_kk = c.kontenjan ? c.kayitOlan / c.kontenjan : null; c.r_kk_p = c.kontenjan_p ? c.kayitOlan_p / c.kontenjan_p : null;
+    c.r_kk_m = c.kontenjan_m ? c.kayitOlan_m / c.kontenjan_m : null;
     c.r_kk_d = (c.r_kk !== null && c.r_kk_p !== null) ? c.r_kk - c.r_kk_p : null;
     title = 'Tüm şehirler';
   }
@@ -1841,12 +2281,13 @@ function renderCitySummary(){
     let d = '';
     if (cmp && p !== null && p !== undefined){
       const dd = (v ?? 0) - p, cls = !dd || good === 0 ? '' : ((dd > 0 ? 1 : -1) * good > 0 ? 'up' : 'down');
-      d = `<span class="d">2025: ${fmtKind(p, fmt)}${dd ? ` · <b class="${cls}">${dd > 0 ? '▲' : '▼'} ${fmtDelta(dd, fmt)}</b>` : ' · değişim yok'}</span>`;
+      const mv = CM ? c[k + '_m'] : null;
+      d = `<span class="d">${CA}: ${fmtKind(p, fmt)}${CM && mv != null ? ` · ${CM}: ${fmtKind(mv, fmt)}` : ''}${dd ? ` · <b class="${cls}">${dd > 0 ? '▲' : '▼'} ${fmtDelta(dd, fmt)}</b>` : ' · değişim yok'}</span>`;
     }
     return `<div class="cs-card${hi ? ' hi' : ''}"><span class="v">${fmtKind(v, fmt)}</span><span class="k">${label}</span>${d}</div>`;
   };
   document.getElementById('city-sum').innerHTML =
-    `<h4>${escapeHtml(title)}</h4><p class="cs-sub">${cmp ? '2026 (altında 2025 ve fark)' : state.year} · ${tur}</p>` +
+    `<h4>${escapeHtml(title)}</h4><p class="cs-sub">${cmp ? (CM ? `${CB} (altında ${CA}, ${CM} ve ${CA}'e göre fark)` : `${CB} (altında ${CA} ve fark)`) : state.year} · ${tur}</p>` +
     `<div class="cs-grid">` +
       card('uniCount', 'Üniversite sayısı', 'num', 0) +
       card('kontenjan', 'Toplam kontenjan', 'num', 0) +
@@ -1863,7 +2304,7 @@ function cityTip(c){
   const mm = mapMetric();
   let h = `<b>${escapeHtml(c.sehir)}</b><br><span style="color:var(--teal-dark)">${escapeHtml(mm.label)}: <b>${fmtMetric(c[mm.key], mm)}</b></span>` +
     `<br>Kontenjan: ${fmtNum(c.kontenjan)} · Dolu: ${fmtNum(c.kayitOlan)}<br>Doluluk: <b>${fmtRatio(c.r_kk)}</b>`;
-  if (cmp) h += ` <span style="color:var(--ink-soft)">(2025: ${fmtRatio(c.r_kk_p)}${c.r_kk_d !== null && c.r_kk_d !== undefined ? ', ' + fmtDelta(c.r_kk_d, 'ratio') : ''})</span>`;
+  if (cmp) h += ` <span style="color:var(--ink-soft)">(${CA}: ${fmtRatio(c.r_kk_p)}${CM ? ` · ${CM}: ${fmtRatio(c.r_kk_m)}` : ''}${c.r_kk_d !== null && c.r_kk_d !== undefined ? ', ' + fmtDelta(c.r_kk_d, 'ratio') : ''})</span>`;
   return h + '<br><span style="color:var(--ink-soft)">Tıklayınca şehir seçilir</span>';
 }
 elMap.addEventListener('mousemove', (e) => {
@@ -1896,6 +2337,9 @@ function renderAll(){
     aggregated = buildUniversityAgg(programGrouped);
     programTotals = buildProgramTotals(filtered);
   }
+  puanRows = effectiveView() === 'puan' ? buildPuanRows(filtered) : [];
+  // varsayılan: taban puanı en yüksek üstte (taban puanı olmayanlar en sonda)
+  if (!state.sortKey) puanRows.sort((a, b) => (b.enk ?? -1) - (a.enk ?? -1));
   buildCityRows();
   renderCityPanel();
   const maxPage = Math.max(1, Math.ceil(currentDataArray().length / effectivePageSize()));
@@ -1921,18 +2365,26 @@ function syncYearButtons(){
     const on = b.dataset.year === state.year;
     b.classList.toggle('active', on); b.setAttribute('aria-pressed', String(on));
   });
-  elEyebrow.textContent = `ÖSYM ${isCmp() ? '2025 ↔ 2026' : state.year} · GENEL KONTENJAN VERİLERİ`;
+  elEyebrow.textContent = `ÖSYM ${isCmp() ? (CM ? `${CA} → ${CM} → ${CB}` : `${CA} ↔ ${CB}`) : state.year} · GENEL KONTENJAN VERİLERİ`;
+}
+// Seçimden yılları çıkar: 'cmp:2024-2026' → CA=2024, CB=2026; 'trend' → 2024 → 2025 → 2026
+function yearsOf(y){
+  if (y === 'trend') return {a:YEARS[YEARS.length - 1], b:YEARS[0], m:YEARS[1]};
+  const mt = /^cmp:(\d{4})-(\d{4})$/.exec(y);
+  return mt ? {a:mt[1], b:mt[2], m:null} : null;
 }
 // Yıl değiştir: gereken veriyi yükle, filtre seçeneklerini yeniden kur, çiz.
 let yearReq = 0;   // yalnızca en son seçilen yıl uygulanır (hızlı tıklamalarda geç biten yükleme seçimi geri almasın)
 function setYear(y){
   const my = ++yearReq;
-  const need = y === 'cmp' ? YEARS : [y];
+  const yrs = yearsOf(y);
+  const need = yrs ? [yrs.b, yrs.a].concat(yrs.m ? [yrs.m] : []) : [y];
   elYearLoading.hidden = need.every(k => DATASETS[k]);
   return Promise.all(need.map(loadYear)).then(() => {
     if (my !== yearReq) return;
     state.year = y; state.page = 1; state.cmpStatus = '';
-    ALL_ROWS = y === 'cmp' ? DATASETS['2026'].concat(DATASETS['2025']) : DATASETS[y];
+    if (yrs){ CA = yrs.a; CB = yrs.b; CM = yrs.m; }
+    ALL_ROWS = yrs ? DATASETS[CB].concat(DATASETS[CA]) : DATASETS[y];
     const cols = currentColumns();
     if (state.sortKey && !cols.some(c => c.key === state.sortKey)){ state.sortKey = null; state.sortDir = 1; }
     computeUskudarKeys();
@@ -2062,6 +2514,8 @@ loadAll();
     document.getElementById('vs-total').textContent = Number(v).toLocaleString('tr-TR');
     document.getElementById('vs-unique').textContent = Number(u || 0).toLocaleString('tr-TR');
     document.getElementById('vs-avg').textContent = fmtDur((t || 0) * TICK / v);
+    // Yerel önizlemede ayrı (deneme) sayaç gösterilir; gerçek sayaçla karışmasın diye işaretle
+    if (NS.endsWith('-test')){ box.insertAdjacentHTML('beforeend', '<span class="vs" title="Yerel önizleme: gerçek site sayacı değil">🧪 <b>deneme</b></span>'); }
     box.hidden = false;
   });
 
