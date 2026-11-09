@@ -611,8 +611,8 @@
 
   /* Ziyaretçi istatistikleri (sağ üst) */
   header.masthead{position:relative;}
+  .top-bar{position:absolute;top:12px;right:16px;display:flex;align-items:center;gap:8px;z-index:2000;}
   .visit-stats{
-    position:absolute;top:12px;right:16px;
     display:flex;align-items:center;gap:0;
     background:var(--white);border:1px solid var(--line);border-radius:18px;
     font-size:12px;color:var(--ink-soft);box-shadow:0 1px 3px rgba(0,0,0,.05);
@@ -622,9 +622,53 @@
   .visit-stats .vs{display:flex;align-items:center;gap:5px;padding:5px 11px;white-space:nowrap;}
   .visit-stats .vs + .vs{border-left:1px solid var(--line-soft);}
   .visit-stats b{color:var(--teal-dark);font-weight:700;font-variant-numeric:tabular-nums;}
-  @media (max-width: 900px){
-    .visit-stats{position:static;justify-content:center;flex-wrap:wrap;width:max-content;max-width:100%;margin:0 auto 12px;}
+  /* Başlıkla çakışmasın: geniş ekran dışında sağ üst çubuk başlığın üstünde, sağa yaslı ayrı satırda */
+  @media (max-width: 1500px){
+    .top-bar{position:relative;z-index:2000;justify-content:flex-end;flex-wrap:wrap;margin:0 0 10px;max-width:100%;}
   }
+  @media (max-width: 900px){
+    .top-bar{justify-content:center;}
+    .visit-stats{justify-content:center;flex-wrap:wrap;max-width:100%;}
+  }
+  @media (max-width: 640px){
+    .ver-pop{position:fixed;top:56px;left:16px;right:16px;width:auto;max-width:none;}
+  }
+
+  /* Sürüm bildirimi (sağ üst): SK3412-n */
+  /* Açılır pencere filtre kutularının ve açılır listelerin her zaman üstünde */
+  .ver{position:relative;z-index:2000;}
+  .ver-pop{z-index:2001;}
+  .ver-btn{font-family:inherit;font-size:12px;display:flex;align-items:center;gap:6px;padding:5px 11px;border-radius:18px;cursor:pointer;
+    background:var(--white);border:1px solid var(--line);color:var(--ink-soft);box-shadow:0 1px 3px rgba(0,0,0,.05);white-space:nowrap;}
+  .ver-btn:hover, .ver-btn[aria-expanded="true"]{border-color:var(--teal);color:var(--teal-dark);}
+  .ver-btn:focus-visible{outline:2px solid var(--accent);outline-offset:2px;}
+  .ver-btn .ver-new{display:none;font-weight:700;color:var(--teal-dark);}
+  .ver-btn.is-new{border-color:var(--teal);background:var(--line-soft);}
+  .ver-btn.is-new .ver-new{display:inline;}
+  .ver-btn .ver-code{font-variant-numeric:tabular-nums;font-weight:600;}
+  .ver-btn.is-new .ver-code{font-weight:400;color:var(--ink-soft);}
+  .ver-btn .ver-dot{width:6px;height:6px;border-radius:50%;background:var(--accent);display:none;}
+  .ver-btn.is-new .ver-dot{display:inline-block;}
+  .ver-pop{position:absolute;top:calc(100% + 8px);right:0;width:360px;max-width:calc(100vw - 32px);max-height:70vh;overflow:auto;
+    background:var(--white);border:1px solid var(--line);border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,.14);
+    padding:14px 16px 12px;text-align:left;font-size:13px;color:var(--ink);line-height:1.45;animation:verIn .14s ease-out;}
+  .ver-pop[hidden]{display:none;}
+  @keyframes verIn{from{opacity:0;transform:translateY(-4px);}to{opacity:1;transform:none;}}
+  @media (prefers-reduced-motion: reduce){.ver-pop{animation:none;}}
+  .ver-pop .vp-k{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-soft);}
+  .ver-pop .vp-code{font-size:22px;font-weight:700;color:var(--teal-dark);font-variant-numeric:tabular-nums;line-height:1.2;}
+  .ver-pop .vp-date{font-size:12px;color:var(--ink-soft);margin-bottom:8px;}
+  .ver-pop h5{margin:10px 0 4px;font-size:12.5px;font-weight:700;color:var(--ink);}
+  .ver-pop ul{margin:0;padding-left:18px;}
+  .ver-pop li{margin:2px 0;}
+  .ver-pop .vp-none{font-size:12px;color:var(--ink-soft);margin:8px 0 0;}
+  .ver-pop .vp-model{margin-top:10px;padding:8px 10px;border-radius:8px;background:var(--paper);border:1px solid var(--line-soft);font-size:12px;color:var(--ink-soft);}
+  .ver-pop details{margin-top:10px;border-top:1px solid var(--line-soft);padding-top:8px;}
+  .ver-pop summary{cursor:pointer;font-weight:700;font-size:12.5px;color:var(--teal-dark);}
+  .ver-pop .vp-old{margin:8px 0 0;padding:8px 0 0;border-top:1px dashed var(--line-soft);}
+  .ver-pop .vp-old b{color:var(--teal-dark);}
+  .ver-pop .vp-pre li{font-size:12px;color:var(--ink-soft);}
+  .ver-pop .vp-pre li span{font-variant-numeric:tabular-nums;color:var(--ink);}
 
   @media (max-width: 640px){
     .stats-row{grid-template-columns:repeat(2,1fr);}
@@ -635,10 +679,18 @@
 <body>
 
 <header class="masthead">
-  <div class="visit-stats sans" id="visit-stats" hidden aria-label="Ziyaretçi istatistikleri">
-    <span class="vs" title="Sayfanın toplam açılma sayısı">👁 <b id="vs-total">–</b> ziyaret</span>
-    <span class="vs" title="Farklı tarayıcı sayısı (her tarayıcı bir kez sayılır)">👤 <b id="vs-unique">–</b> kişi</span>
-    <span class="vs" title="Ziyaret başına sayfanın açık ve görünür olduğu ortalama süre">⏱ Ort. <b id="vs-avg">–</b></span>
+  <div class="top-bar sans">
+    <div class="ver" id="ver">
+      <button type="button" class="ver-btn" id="ver-btn" aria-expanded="false" aria-controls="ver-pop" title="Sürüm notları">
+        <span class="ver-dot" aria-hidden="true"></span><span class="ver-new">✨ Yeni Sürüm</span><span class="ver-code" id="ver-code">SK3412</span>
+      </button>
+      <div class="ver-pop" id="ver-pop" role="dialog" aria-label="Sürüm notları" hidden></div>
+    </div>
+    <div class="visit-stats" id="visit-stats" hidden aria-label="Ziyaretçi istatistikleri">
+      <span class="vs" title="Sayfanın toplam açılma sayısı">👁 <b id="vs-total">–</b> ziyaret</span>
+      <span class="vs" title="Farklı tarayıcı sayısı (her tarayıcı bir kez sayılır)">👤 <b id="vs-unique">–</b> kişi</span>
+      <span class="vs" title="Ziyaret başına sayfanın açık ve görünür olduğu ortalama süre">⏱ Ort. <b id="vs-avg">–</b></span>
+    </div>
   </div>
   <div class="logo-row">
     <div class="logo-wrap">
@@ -1952,7 +2004,7 @@ function toggleDetail(tr){
   const p = elTbody.querySelector('tr.cmp-detail');
   if (p) p.scrollIntoView({block:'nearest', behavior:matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth'});
 }
-document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && openDetail !== null){ openDetail = null; renderTable(); } });
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && openDetail !== null && document.getElementById('ver-pop').hidden){ openDetail = null; renderTable(); } });
 elTbody.addEventListener('click', (e) => {
   if (e.target.closest('[data-close]')){ openDetail = null; renderTable(); return; }
   if (e.target.closest('tr.cmp-detail')) return;
@@ -2487,6 +2539,76 @@ elThead.addEventListener('click', (e)=>{
 });
 
 loadAll();
+
+/* -------------------- sürüm bildirimi (SK3412-n) --------------------
+   SK3412 bu sitenin kendi yazılım sürüm kodudur; herhangi bir yapay zekâ modelinin sürümü değildir.
+   KURALLAR: Her yayında SURUMLER'in BAŞINA yeni bir kayıt eklenir (SK3412-<önceki + 1>); eski kayıtlar silinmez,
+   değiştirilmez. Yalnızca fiilen yapılmış değişiklikler yazılır; boş kategoriler gösterilmez.
+   Yeni kayıt eklenmedikçe "Yeni Sürüm" bildirimi çıkmaz (ziyaretçinin gördüğü son kod tarayıcısında saklanır).
+   model: site bir yapay zekâ modeli kullanmaz; ileride kullanırsa resmî model güncellemeleri buraya ayrı yazılır. */
+const SURUMLER = [
+  {kod:'SK3412-1', tarih:'2026-11-09',
+   yeni:['Sağ üst köşede sürüm bildirimi: yeni bir sürüm yayımlandığında “✨ Yeni Sürüm” etiketi görünür; tıklayınca sürüm notları açılır.',
+         'Sürüm geçmişi: önceki sürümlerin notları ve sürüm sistemi öncesi güncellemeler bu pencereden görüntülenebilir.'],
+   iyilestirme:[], analiz:[], hiz:[], hata:[], model:null},
+];
+// Sürüm sistemi öncesi yayınlar (GitHub commit kayıtlarından, olduğu gibi)
+const SURUM_ONCESI = [
+  ['2026-11-04', '2024 verisi, 3 yıllık gidişat ve Taban / Tavan Puan sekmesi'],
+  ['2026-10-03', '2025 verisi, yıl filtresi, yıl karşılaştırması ve şehir bazlı analiz'],
+  ['2026-09-30', 'Sağ üste ziyaretçi istatistikleri eklendi'],
+  ['2026-09-30', 'Tablo başlığı aşağı kaydırınca sabit kalıyor'],
+  ['2026-09-30', 'Program Listesi’ne 2026 ücret sütunları eklendi'],
+  ['2026-09-28', 'Ek yerleştirme verisi: Ek Yerleşen ve Ek Yerl./Ek Kont. % sütunları'],
+  ['2026-09-28', 'Filtre listelerinde yazdıkça süzme hatası düzeltildi'],
+  ['2026-09-28', 'Logodaki maskot karikatürü kaldırıldı'],
+  ['2026-09-28', 'YKS 2026 Kontenjan ve Kayıt Analizi aracı yayımlandı'],
+];
+(function surumBildirimi(){
+  const KAT = [['yeni', 'Yeni eklenen özellikler'], ['iyilestirme', 'Mevcut özelliklerde iyileştirmeler'], ['analiz', 'Akıl yürütme ve analiz geliştirmeleri'],
+               ['hiz', 'Hız ve performans iyileştirmeleri'], ['hata', 'Hata düzeltmeleri']];
+  const btn = document.getElementById('ver-btn'), pop = document.getElementById('ver-pop');
+  const son = SURUMLER[0];
+  const tarihTr = (s) => new Date(s + 'T12:00:00').toLocaleDateString('tr-TR', {day:'numeric', month:'long', year:'numeric'});
+  const esc = (s) => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;'}[c]));
+  const notlar = (s) => {
+    const dolu = KAT.filter(([k]) => (s[k] || []).length);
+    return dolu.map(([k, ad]) => `<h5>${ad}</h5><ul>${s[k].map(x => `<li>${esc(x)}</li>`).join('')}</ul>`).join('') +
+      (dolu.length < KAT.length ? `<p class="vp-none">Bu sürümde değişiklik yok: ${KAT.filter(([k]) => !(s[k] || []).length).map(([, ad]) => ad.toLowerCase()).join(', ')}.</p>` : '');
+  };
+  document.getElementById('ver-code').textContent = son.kod;
+  pop.innerHTML =
+    `<div class="vp-k">Mevcut sürüm</div><div class="vp-code">${son.kod}</div><div class="vp-date">Güncelleme tarihi: ${tarihTr(son.tarih)}</div>` +
+    notlar(son) +
+    `<div class="vp-model"><b>Resmî model güncellemeleri:</b> ${son.model ? esc(son.model) : 'yok. Bu site bir yapay zekâ modeli kullanmaz; SK3412 sitenin kendi yazılım sürüm kodudur.'}</div>` +
+    `<details><summary>Sürüm geçmişi</summary>` +
+      (SURUMLER.length > 1
+        ? SURUMLER.slice(1).map(s => `<div class="vp-old"><b>${s.kod}</b> · ${tarihTr(s.tarih)}${notlar(s)}</div>`).join('')
+        : '<p class="vp-none">SK3412-1, sürüm kodlu ilk yayındır; öncesinde kodlu sürüm yok.</p>') +
+      `<h5>Sürüm sistemi öncesi güncellemeler</h5><ul class="vp-pre">${SURUM_ONCESI.map(([t, m]) => `<li><span>${tarihTr(t)}</span> · ${esc(m)}</li>`).join('')}</ul>` +
+    `</details>`;
+  // Yeni sürüm bildirimi: ziyaretçi bu kodu daha önce açmadıysa
+  let gorulen = null; try { gorulen = localStorage.getItem('sk3412_gorulen'); } catch (e) {}
+  const yeni = gorulen !== son.kod;
+  btn.classList.toggle('is-new', yeni);
+  btn.setAttribute('aria-label', (yeni ? 'Yeni sürüm: ' : 'Sürüm ') + son.kod + ' — notları göster');
+  let sabit = false, kapat = null;
+  const ac = () => {
+    clearTimeout(kapat); pop.hidden = false; btn.setAttribute('aria-expanded', 'true');
+    if (btn.classList.contains('is-new')){ try { localStorage.setItem('sk3412_gorulen', son.kod); } catch (e) {} }
+  };
+  const gizle = () => {
+    pop.hidden = true; sabit = false; btn.setAttribute('aria-expanded', 'false');
+    // Notlar görüldükten sonra etiket sadeleşir
+    let g = null; try { g = localStorage.getItem('sk3412_gorulen'); } catch (e) {}
+    if (g === son.kod) btn.classList.remove('is-new');
+  };
+  const wrap = document.getElementById('ver');
+  // Yalnızca tıklayınca açılır (üzerinden geçerken kendiliğinden açılıp kapanmasın)
+  btn.addEventListener('click', () => { if (sabit){ gizle(); } else { sabit = true; ac(); } });
+  document.addEventListener('click', (e) => { if (!pop.hidden && !wrap.contains(e.target)) gizle(); });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !pop.hidden){ gizle(); btn.focus(); } });
+})();
 
 /* -------------------- ziyaretçi istatistikleri --------------------
    Sunucusuz sayaç: abacus.jasoncameron.dev (üyeliksiz, ücretsiz).
